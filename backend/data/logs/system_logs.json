@@ -1,0 +1,242 @@
+[
+  {
+    "id": "1749246622980",
+    "timestamp": "2025-06-06T21:50:22.980Z",
+    "action": "إضافة",
+    "resource": "المعاملات المالية",
+    "user": "غير معروف",
+    "userId": null,
+    "method": "POST",
+    "endpoint": "/api/transactions",
+    "ip": "::1",
+    "userAgent": "curl/7.53.1",
+    "details": {
+      "data": {
+        "amount": 1200,
+        "type": "مصروف",
+        "description": "صيانة أجهزة الكمبيوتر",
+        "category": "صيانة",
+        "approvedBy": "admin"
+      }
+    },
+    "status": "نجح",
+    "statusCode": 201
+  },
+  {
+    "id": "1749246617086",
+    "timestamp": "2025-06-06T21:50:17.086Z",
+    "action": "إضافة",
+    "resource": "المعاملات المالية",
+    "user": "غير معروف",
+    "userId": null,
+    "method": "POST",
+    "endpoint": "/api/transactions",
+    "ip": "::1",
+    "userAgent": "curl/7.53.1",
+    "details": {
+      "data": {
+        "amount": 7500,
+        "type": "دخل",
+        "description": "مكافأة نهاية العام 2024",
+        "category": "مكافآت",
+        "employeeId": "EMP001"
+      }
+    },
+    "status": "نجح",
+    "statusCode": 201
+  },
+  {
+    "id": "1749246308168",
+    "timestamp": "2025-06-06T21:45:08.168Z",
+    "action": "إضافة",
+    "resource": "المعاملات المالية",
+    "user": "غير معروف",
+    "userId": null,
+    "method": "POST",
+    "endpoint": "/api/transactions",
+    "ip": "::1",
+    "userAgent": "curl/7.53.1",
+    "details": {
+      "data": {
+        "amount": 3500,
+        "type": "دخل",
+        "description": "مكافأة أداء ممتاز",
+        "category": "مكافآت"
+      }
+    },
+    "status": "نجح",
+    "statusCode": 201
+  },
+  {
+    "id": "1749246154744",
+    "timestamp": "2025-06-06T21:42:34.744Z",
+    "action": "إضافة",
+    "resource": "المعاملات المالية",
+    "user": "غير معروف",
+    "userId": null,
+    "method": "POST",
+    "endpoint": "/api/transactions",
+    "ip": "::1",
+    "userAgent": "curl/7.53.1",
+    "details": {
+      "data": {
+        "amount": 2000,
+        "type": "مصروف",
+        "description": "فواتير كهرباء",
+        "category": "فواتير"
+      }
+    },
+    "status": "نجح",
+    "statusCode": 201
+  },
+  {
+    "id": "1704963600000",
+    "timestamp": "2024-01-11T10:00:00.000Z",
+    "action": "تسجيل دخول",
+    "resource": "النظام",
+    "user": "أحمد محمد",
+    "userId": "1",
+    "method": "POST",
+    "endpoint": "/api/auth/login",
+    "ip": "192.168.1.100",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "details": {
+      "email": "admin@company.com"
+    },
+    "status": "نجح",
+    "statusCode": 200
+  },
+  {
+    "id": "1704963900000",
+    "timestamp": "2024-01-11T10:05:00.000Z",
+    "action": "إضافة",
+    "resource": "المعاملات المالية",
+    "user": "أحمد محمد",
+    "userId": "1",
+    "method": "POST",
+    "endpoint": "/api/transactions",
+    "ip": "192.168.1.100",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "details": {
+      "data": {
+        "amount": 5000,
+        "type": "دخل",
+        "description": "راتب شهر يناير",
+        "category": "رواتب"
+      }
+    },
+    "status": "نجح",
+    "statusCode": 201
+  },
+  {
+    "id": "1704964200000",
+    "timestamp": "2024-01-11T10:10:00.000Z",
+    "action": "تعديل",
+    "resource": "الموظفين",
+    "user": "أحمد محمد",
+    "userId": "1",
+    "method": "PUT",
+    "endpoint": "/api/employees/2",
+    "ip": "192.168.1.100",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "details": {
+      "id": "2",
+      "changes": {
+        "salary": 4500,
+        "position": "مطور أول"
+      }
+    },
+    "status": "نجح",
+    "statusCode": 200
+  },
+  {
+    "id": "1704964500000",
+    "timestamp": "2024-01-11T10:15:00.000Z",
+    "action": "عرض",
+    "resource": "الرواتب",
+    "user": "سارة أحمد",
+    "userId": "2",
+    "method": "GET",
+    "endpoint": "/api/payroll",
+    "ip": "192.168.1.101",
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)",
+    "details": {
+      "query": {
+        "month": "2024-01",
+        "department": "التطوير"
+      }
+    },
+    "status": "نجح",
+    "statusCode": 200
+  },
+  {
+    "id": "1704964800000",
+    "timestamp": "2024-01-11T10:20:00.000Z",
+    "action": "إضافة",
+    "resource": "واتساب",
+    "user": "النظام",
+    "userId": null,
+    "method": "POST",
+    "endpoint": "/api/whatsapp/send",
+    "ip": "localhost",
+    "userAgent": "نظام داخلي",
+    "details": {
+      "message": "مرحباً، تم إرسال راتبك لهذا الشهر",
+      "recipient": "+201234567890"
+    },
+    "status": "نجح",
+    "statusCode": 200
+  },
+  {
+    "id": "1704965100000",
+    "timestamp": "2024-01-11T10:25:00.000Z",
+    "action": "حذف",
+    "resource": "المعاملات المالية",
+    "user": "أحمد محمد",
+    "userId": "1",
+    "method": "DELETE",
+    "endpoint": "/api/transactions/123",
+    "ip": "192.168.1.100",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "details": {
+      "id": "123"
+    },
+    "status": "نجح",
+    "statusCode": 200
+  },
+  {
+    "id": "1704965400000",
+    "timestamp": "2024-01-11T10:30:00.000Z",
+    "action": "تسجيل خروج",
+    "resource": "النظام",
+    "user": "سارة أحمد",
+    "userId": "2",
+    "method": "POST",
+    "endpoint": "/api/auth/logout",
+    "ip": "192.168.1.101",
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)",
+    "details": {},
+    "status": "نجح",
+    "statusCode": 200
+  },
+  {
+    "id": "1704965700000",
+    "timestamp": "2024-01-11T10:35:00.000Z",
+    "action": "تعديل",
+    "resource": "الإعدادات",
+    "user": "أحمد محمد",
+    "userId": "1",
+    "method": "PUT",
+    "endpoint": "/api/settings",
+    "ip": "192.168.1.100",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "details": {
+      "changes": {
+        "notifications_enabled": true,
+        "theme": "dark"
+      }
+    },
+    "status": "نجح",
+    "statusCode": 200
+  }
+]

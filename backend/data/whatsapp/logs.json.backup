@@ -1,0 +1,146 @@
+[
+  {
+    "id": "1749232486582",
+    "timestamp": "2025-06-06T17:54:46.582Z",
+    "type": "sessions_cleared",
+    "status": "success",
+    "message": "All sessions and data cleared successfully"
+  },
+  {
+    "id": "1749232254280",
+    "timestamp": "2025-06-06T17:50:54.280Z",
+    "type": "contacts_loaded",
+    "status": "success",
+    "message": "Loaded 1719 contacts and 195 chats"
+  },
+  {
+    "id": "1749232254182",
+    "timestamp": "2025-06-06T17:50:54.182Z",
+    "type": "client_ready",
+    "status": "success",
+    "message": "Client ready - IN General (201080606086)"
+  },
+  {
+    "id": "1749232254018",
+    "timestamp": "2025-06-06T17:50:54.018Z",
+    "type": "authenticated",
+    "status": "success",
+    "message": "Client authenticated successfully"
+  },
+  {
+    "id": "1749232242899",
+    "timestamp": "2025-06-06T17:50:42.899Z",
+    "type": "manual_disconnect",
+    "status": "info",
+    "message": "Client disconnected manually"
+  },
+  {
+    "id": "1749232218609",
+    "timestamp": "2025-06-06T17:50:18.609Z",
+    "type": "message_ack",
+    "status": "info",
+    "data": {
+      "messageId": "3EB02B936F48632466197C",
+      "acknowledgment": "received",
+      "timestamp": "2025-06-06T17:50:18.607Z"
+    }
+  },
+  {
+    "id": "1749232217390",
+    "timestamp": "2025-06-06T17:50:17.390Z",
+    "type": "message_ack",
+    "status": "info",
+    "data": {
+      "messageId": "3EB02B936F48632466197C",
+      "acknowledgment": "sent",
+      "timestamp": "2025-06-06T17:50:17.389Z"
+    }
+  },
+  {
+    "id": "1749232217020",
+    "timestamp": "2025-06-06T17:50:17.018Z",
+    "type": "message_sent",
+    "status": "success",
+    "to": "201016772118@c.us",
+    "message": "💰 إشعار راتب - ديسمبر 2024\n\nعزيزي/عزيزتي كريم البحراوي,\n\nتم صرف راتبك لشهر ديسمبر 2024 بنجاح! 🎉\n\n\ud83d...",
+    "messageId": "3EB02B936F48632466197C",
+    "templateName": "salary_notification",
+    "templateData": {
+      "employeeName": "كريم البحراوي",
+      "companyName": "شركة الموارد البشرية المتطورة",
+      "department": "قسم تكنولوجيا المعلومات",
+      "position": "مطور برمجيات",
+      "month": "ديسمبر 2024",
+      "amount": "12,500",
+      "basicSalary": "10,000",
+      "allowances": "3,000",
+      "deductions": "500",
+      "netSalary": "12,500",
+      "paymentDate": "٦‏/٦‏/٢٠٢٥",
+      "paymentMethod": "تحويل بنكي",
+      "transactionId": "TXN216975",
+      "subject": "مراجعة المشاريع الشهرية",
+      "date": "غداً",
+      "time": "10:00 صباحاً",
+      "status": "تمت الموافقة",
+      "startDate": "25 ديسمبر 2024",
+      "endDate": "31 ديسمبر 2024",
+      "title": "إجازة نهاية السنة",
+      "content": "ستكون الشركة مغلقة من 25-31 ديسمبر للإجازة السنوية.",
+      "startTime": "09:00 صباحاً",
+      "endTime": "05:00 مساءً"
+    },
+    "category": "payroll"
+  },
+  {
+    "id": "1749232204685",
+    "timestamp": "2025-06-06T17:50:04.685Z",
+    "type": "message_ack",
+    "status": "info",
+    "data": {
+      "messageId": "3EB0CE8EFD1EF15884A810",
+      "acknowledgment": "received",
+      "timestamp": "2025-06-06T17:50:04.683Z"
+    }
+  },
+  {
+    "id": "1749232203247",
+    "timestamp": "2025-06-06T17:50:03.247Z",
+    "type": "message_ack",
+    "status": "info",
+    "data": {
+      "messageId": "3EB0CE8EFD1EF15884A810",
+      "acknowledgment": "sent",
+      "timestamp": "2025-06-06T17:50:03.246Z"
+    }
+  },
+  {
+    "id": "1749232202683",
+    "timestamp": "2025-06-06T17:50:02.682Z",
+    "type": "message_sent",
+    "status": "success",
+    "to": "201016772118@c.us",
+    "message": "السلام عليكم ورحمة الله وبركاته، هذه رسالة تجريبية من نظام الموارد البشرية 👋",
+    "messageId": "3EB0CE8EFD1EF15884A810"
+  },
+  {
+    "id": "1749232202677",
+    "timestamp": "2025-06-06T17:50:02.677Z",
+    "type": "message_sent_confirmation",
+    "status": "success",
+    "data": {
+      "id": "3EB0CE8EFD1EF15884A810",
+      "to": "201016772118@c.us",
+      "body": "السلام عليكم ورحمة الله وبركاته، هذه رسالة تجريبية من نظام الموارد البشرية 👋",
+      "type": "chat",
+      "timestamp": "2025-06-06T17:50:02.000Z"
+    }
+  },
+  {
+    "id": "1749232196146",
+    "timestamp": "2025-06-06T17:49:56.146Z",
+    "type": "contacts_loaded",
+    "status": "success",
+    "message": "Loaded 868 contacts and 195 chats"
+  }
+]
