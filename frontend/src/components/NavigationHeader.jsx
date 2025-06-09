@@ -14,7 +14,8 @@ import {
   Search,
   MessageCircle,
   CheckCircle,
-  Activity
+  Activity,
+  Building
 } from 'lucide-react'
 import { Button } from './ui/button'
 
@@ -56,6 +57,13 @@ const NavigationHeader = () => {
       title: 'الموظفين',
       icon: Users,
       path: '/employees',
+      roles: ['admin']
+    },
+    {
+      id: 'clients',
+      title: 'العملاء',
+      icon: Building,
+      path: '/clients',
       roles: ['admin']
     },
     {

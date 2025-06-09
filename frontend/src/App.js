@@ -9,6 +9,8 @@ import DashboardPage from './pages/DashboardPage'
 import TransactionsPage from './pages/TransactionsPage'
 import ApprovalsPage from './pages/ApprovalsPage'
 import EmployeesPage from './pages/EmployeesPage'
+import ClientsPage from './pages/ClientsPage'
+import ClientDetailsPage from './pages/ClientDetailsPage'
 import PayrollPage from './pages/PayrollPage'
 import CategoriesPage from './pages/CategoriesPage'
 import MePage from './pages/MePage'
@@ -152,6 +154,38 @@ function App() {
               ) : user.role === 'admin' ? (
                 <Layout user={user} onLogout={handleLogout}>
                   <EmployeesPage />
+                </Layout>
+              ) : (
+                <Navigate to="/me" replace />
+              )
+            }
+          />
+
+          {/* العملاء */}
+          <Route
+            path="/clients"
+            element={
+              !user ? (
+                <Navigate to="/login" replace />
+              ) : user.role === 'admin' ? (
+                <Layout user={user} onLogout={handleLogout}>
+                  <ClientsPage />
+                </Layout>
+              ) : (
+                <Navigate to="/me" replace />
+              )
+            }
+          />
+
+          {/* تفاصيل العميل */}
+          <Route
+            path="/clients/:clientId"
+            element={
+              !user ? (
+                <Navigate to="/login" replace />
+              ) : user.role === 'admin' ? (
+                <Layout user={user} onLogout={handleLogout}>
+                  <ClientDetailsPage />
                 </Layout>
               ) : (
                 <Navigate to="/me" replace />

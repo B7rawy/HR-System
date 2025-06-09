@@ -22,6 +22,15 @@ import {
 } from 'lucide-react'
 import { formatCurrency, formatDate } from '../utils/formatters'
 
+// بيانات العملاء للربط مع العمليات
+const clients = [
+  { id: 1, name: 'شركة الأهرام للتجارة' },
+  { id: 2, name: 'مؤسسة النيل للمقاولات' },
+  { id: 3, name: 'محمد علي - تاجر تجزئة' },
+  { id: 4, name: 'شركة الدلتا للصناعات' },
+  { id: 5, name: 'مكتب الإبداع للاستشارات' }
+]
+
 // بيانات مؤقتة أكثر تفصيلاً للمعاملات
 const initialTransactions = [
   {
@@ -35,7 +44,9 @@ const initialTransactions = [
     status: 'مكتمل',
     notes: 'راتب شهر يونيو مع بدل مواصلات',
     createdBy: 'نظام الرواتب',
-    approvedBy: 'محمد أحمد - المدير المالي'
+    approvedBy: 'محمد أحمد - المدير المالي',
+    clientId: null, // عملية عامة - غير مرتبطة بعميل
+    clientName: null
   },
   {
     id: 2,
@@ -48,7 +59,9 @@ const initialTransactions = [
     status: 'مكتمل',
     notes: 'عمولة استكمال مشروع ABC للعميل XYZ',
     createdBy: 'سارة إبراهيم',
-    approvedBy: 'علي حسام - مدير المشاريع'
+    approvedBy: 'علي حسام - مدير المشاريع',
+    clientId: 1,
+    clientName: 'شركة الأهرام للتجارة'
   },
   {
     id: 3,
@@ -61,7 +74,9 @@ const initialTransactions = [
     status: 'مكتمل',
     notes: 'إيجار المكتب الرئيسي لشهر يونيو',
     createdBy: 'فاطمة أحمد',
-    approvedBy: 'أحمد محمد - المدير العام'
+    approvedBy: 'أحمد محمد - المدير العام',
+    clientId: null,
+    clientName: null
   },
   {
     id: 4,
@@ -74,7 +89,9 @@ const initialTransactions = [
     status: 'مكتمل',
     notes: 'فواتير الكهرباء والمياه لشهر مايو',
     createdBy: 'نورهان مصطفى',
-    approvedBy: 'فاطمة أحمد - المحاسبة'
+    approvedBy: 'فاطمة أحمد - المحاسبة',
+    clientId: null,
+    clientName: null
   },
   {
     id: 5,
@@ -87,7 +104,9 @@ const initialTransactions = [
     status: 'مكتمل',
     notes: 'راتب شهر يونيو مع مكافأة أداء',
     createdBy: 'نظام الرواتب',
-    approvedBy: 'محمد أحمد - المدير المالي'
+    approvedBy: 'محمد أحمد - المدير المالي',
+    clientId: null,
+    clientName: null
   },
   {
     id: 6,
@@ -100,7 +119,9 @@ const initialTransactions = [
     status: 'مكتمل',
     notes: 'خدمات استشارية لتطوير نظام إدارة',
     createdBy: 'علي حسام',
-    approvedBy: 'أحمد محمد - المدير العام'
+    approvedBy: 'أحمد محمد - المدير العام',
+    clientId: 5,
+    clientName: 'مكتب الإبداع للاستشارات'
   },
   {
     id: 7,
@@ -113,7 +134,9 @@ const initialTransactions = [
     status: 'قيد المراجعة',
     notes: '5 أجهزة كمبيوتر محمولة للفريق التقني',
     createdBy: 'أحمد محمد',
-    approvedBy: '-'
+    approvedBy: '-',
+    clientId: null,
+    clientName: null
   },
   {
     id: 8,
@@ -126,7 +149,9 @@ const initialTransactions = [
     status: 'مكتمل',
     notes: 'مكافأة للفريق على إنجاز المشروع في الموعد',
     createdBy: 'علي حسام',
-    approvedBy: 'أحمد محمد - المدير العام'
+    approvedBy: 'أحمد محمد - المدير العام',
+    clientId: 2,
+    clientName: 'مؤسسة النيل للمقاولات'
   },
   {
     id: 9,
@@ -139,7 +164,9 @@ const initialTransactions = [
     status: 'مكتمل',
     notes: 'عقد صيانة سنوي لنظام إدارة المخازن',
     createdBy: 'نورهان مصطفى',
-    approvedBy: 'علي حسام - مدير المشاريع'
+    approvedBy: 'علي حسام - مدير المشاريع',
+    clientId: 4,
+    clientName: 'شركة الدلتا للصناعات'
   },
   {
     id: 10,
@@ -152,7 +179,9 @@ const initialTransactions = [
     status: 'قيد المراجعة',
     notes: 'دورة تدريبية في المحاسبة المتقدمة',
     createdBy: 'محمد عبد الله',
-    approvedBy: '-'
+    approvedBy: '-',
+    clientId: null,
+    clientName: null
   }
 ];
 
@@ -165,6 +194,7 @@ const TransactionsPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedType, setSelectedType] = useState('')
+  const [selectedClient, setSelectedClient] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState(null)
 
@@ -176,10 +206,14 @@ const TransactionsPage = () => {
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          transaction.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         transaction.category.toLowerCase().includes(searchTerm.toLowerCase())
+                         transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (transaction.clientName && transaction.clientName.toLowerCase().includes(searchTerm.toLowerCase()))
     const matchesCategory = !selectedCategory || transaction.category === selectedCategory
     const matchesType = !selectedType || transaction.type === selectedType
-    return matchesSearch && matchesCategory && matchesType
+    const matchesClient = !selectedClient || 
+                         (selectedClient === 'none' && !transaction.clientId) ||
+                         (selectedClient !== 'none' && transaction.clientId && transaction.clientId.toString() === selectedClient)
+    return matchesSearch && matchesCategory && matchesType && matchesClient
   })
 
   // حساب الإحصائيات
@@ -306,6 +340,14 @@ const TransactionsPage = () => {
             <span className="text-gray-500 dark:text-gray-400">أنشأ بواسطة: </span>
             <span className="font-medium text-gray-900 dark:text-white">{transaction.createdBy}</span>
           </div>
+          {transaction.clientName && (
+            <div className="md:col-span-2">
+              <span className="text-gray-500 dark:text-gray-400">العميل: </span>
+              <span className="font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md">
+                {transaction.clientName}
+              </span>
+            </div>
+          )}
           {transaction.approvedBy !== '-' && (
             <div className="md:col-span-2">
               <span className="text-gray-500 dark:text-gray-400">اعتمد بواسطة: </span>
@@ -457,7 +499,7 @@ const TransactionsPage = () => {
       {/* البحث والفلترة */}
       <Card>
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
               <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
@@ -484,6 +526,17 @@ const TransactionsPage = () => {
               <option value="">جميع التصنيفات</option>
               {categories.map(category => (
                 <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+            <select
+              value={selectedClient}
+              onChange={(e) => setSelectedClient(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="">جميع العملاء</option>
+              <option value="none">عمليات عامة (بدون عميل)</option>
+              {clients.map(client => (
+                <option key={client.id} value={client.id.toString()}>{client.name}</option>
               ))}
             </select>
             <Button variant="outline" className="gap-2">
@@ -577,6 +630,19 @@ const TransactionsPage = () => {
                   />
                 </div>
                 <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="client">العميل (اختياري)</Label>
+                  <select
+                    id="client"
+                    defaultValue={editingTransaction?.clientId || ''}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                  >
+                    <option value="">عملية عامة (بدون عميل)</option>
+                    {clients.map(client => (
+                      <option key={client.id} value={client.id.toString()}>{client.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="notes">ملاحظات</Label>
                   <Input
                     id="notes"
@@ -589,6 +655,9 @@ const TransactionsPage = () => {
               <div className="flex gap-3 pt-4">
                 <Button 
                   onClick={() => {
+                    const clientId = document.getElementById('client').value;
+                    const selectedClientData = clients.find(c => c.id.toString() === clientId);
+                    
                     const formData = {
                       description: document.getElementById('description').value,
                       amount: parseFloat(document.getElementById('amount').value) || 0,
@@ -596,6 +665,8 @@ const TransactionsPage = () => {
                       category: document.getElementById('category').value,
                       date: document.getElementById('date').value,
                       notes: document.getElementById('notes').value,
+                      clientId: clientId ? parseInt(clientId) : null,
+                      clientName: selectedClientData ? selectedClientData.name : null
                     };
                     
                     if (editingTransaction) {

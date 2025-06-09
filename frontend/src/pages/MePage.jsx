@@ -44,6 +44,8 @@ import { formatCurrency, formatDate } from '../utils/formatters'
 
 const MePage = ({ user }) => {
   const [activeTab, setActiveTab] = useState('overview')
+  const [selectedScreenshot, setSelectedScreenshot] = useState(null)
+  const [showScreenshotModal, setShowScreenshotModal] = useState(false)
 
   console.log('MePage user:', user) // للتحقق من البيانات في console
 
@@ -121,6 +123,47 @@ const MePage = ({ user }) => {
       lateDays: 2,
       absences: 1
     },
+    desktopTracking: {
+      appStatus: 'غير متصل', // متصل / غير متصل
+      currentSession: {
+        checkInTime: '08:15:23',
+        workingTime: '0:00:00', // الوقت المنقضي منذ الحضور - يظهر صفر عند عدم الاتصال
+        idleTime: '0:00:00', // وقت عدم النشاط - يظهر صفر عند عدم الاتصال
+        activeTime: '0:00:00', // وقت النشاط الفعلي - يظهر صفر عند عدم الاتصال
+        lastActivity: '2024-06-09T08:15:23Z',
+        isActive: false // غير نشط عند عدم اتصال التطبيق
+      },
+      todayStats: {
+        totalWorkTime: '0:00:00', // يظهر صفر عند عدم الاتصال
+        totalIdleTime: '0:00:00', // يظهر صفر عند عدم الاتصال
+        productivityScore: 0, // نسبة الإنتاجية صفر عند عدم الاتصال
+        screenshotCount: 0, // لا توجد لقطات عند عدم الاتصال
+        activityLevel: 'غير متاح' // غير متاح عند عدم الاتصال
+      },
+      weeklyStats: [
+        { day: 'الأحد', workTime: '8:15:30', idleTime: '1:12:45', productivity: 87 },
+        { day: 'الإثنين', workTime: '7:45:20', idleTime: '2:05:30', productivity: 79 },
+        { day: 'الثلاثاء', workTime: '8:30:15', idleTime: '0:58:20', productivity: 90 },
+        { day: 'الأربعاء', workTime: '7:12:45', idleTime: '1:35:40', productivity: 82 },
+        { day: 'الخميس', workTime: '8:05:30', idleTime: '1:15:25', productivity: 86 },
+        { day: 'الجمعة', workTime: '6:30:20', idleTime: '2:20:15', productivity: 75 },
+        { day: 'السبت', workTime: '7:23:45', idleTime: '1:24:12', productivity: 84 }
+      ],
+      recentScreenshots: [
+        // لا توجد لقطات شاشة عند عدم اتصال التطبيق
+        // ستظهر هذه اللقطات عند اتصال التطبيق:
+        // { id: 1, timestamp: '15:38:45', activity: 'عمل على Excel', thumbnail: '/screenshots/screenshot_1.jpg' },
+        // { id: 2, timestamp: '15:23:12', activity: 'تصفح المواقع المهنية', thumbnail: '/screenshots/screenshot_2.jpg' },
+        // { id: 3, timestamp: '15:08:30', activity: 'اجتماع فيديو', thumbnail: '/screenshots/screenshot_3.jpg' },
+        // { id: 4, timestamp: '14:52:18', activity: 'كتابة التقارير', thumbnail: '/screenshots/screenshot_4.jpg' },
+        // { id: 5, timestamp: '14:35:45', activity: 'مراجعة الإيميلات', thumbnail: '/screenshots/screenshot_5.jpg' }
+      ],
+      permissions: {
+        canStartFromWeb: false, // لا يمكن بدء الحضور من الويب إلا بوجود التطبيق
+        canViewScreenshots: true, // يمكن مشاهدة الصور فقط
+        canDeleteScreenshots: false // لا يمكن مسح الصور
+      }
+    },
     benefits: [
       { id: 1, title: 'تأمين صحي شامل', status: 'نشط', coverage: '100%', icon: Shield },
       { id: 2, title: 'تأمين اجتماعي', status: 'نشط', coverage: '10%', icon: Users },
@@ -153,6 +196,7 @@ const MePage = ({ user }) => {
 
   const tabs = [
     { id: 'overview', label: 'نظرة عامة', icon: BarChart3 },
+    { id: 'desktop-tracking', label: 'مراقبة سطح المكتب', icon: Activity },
     { id: 'salary', label: 'الراتب والمزايا', icon: DollarSign },
     { id: 'attendance', label: 'الحضور والانصراف', icon: Clock },
     { id: 'performance', label: 'الأداء والتقييم', icon: TrendingUp },
@@ -304,6 +348,498 @@ const MePage = ({ user }) => {
           </CardContent>
         </Card>
       </div>
+    </div>
+  )
+
+  // دالة لفتح نافذة عرض الصورة
+  const openScreenshotModal = (screenshot) => {
+    setSelectedScreenshot(screenshot)
+    setShowScreenshotModal(true)
+  }
+
+  // دالة محاولة تسجيل الحضور/الانصراف
+  const handleAttendanceAction = (action) => {
+    if (employeeData.desktopTracking.appStatus !== 'متصل') {
+      alert('⚠️ يجب تشغيل تطبيق سطح المكتب أولاً لتسجيل الحضور/الانصراف')
+      return
+    }
+    
+    // هنا يمكن إضافة منطق تسجيل الحضور/الانصراف
+    alert(`✅ تم ${action} بنجاح`)
+  }
+
+  const renderDesktopTracking = () => (
+    <div className="space-y-6">
+      {/* تحذير حالة التطبيق */}
+      {employeeData.desktopTracking.appStatus !== 'متصل' && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3 rtl:space-x-reverse">
+              <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+              <div>
+                <h3 className="text-red-800 dark:text-red-200 font-semibold">تطبيق سطح المكتب غير متصل</h3>
+                <p className="text-red-600 dark:text-red-300 text-sm">
+                  يجب تشغيل تطبيق مراقبة سطح المكتب للحصول على البيانات الدقيقة وتسجيل الحضور/الانصراف
+                </p>
+              </div>
+            </div>
+            <div className="flex space-x-2 rtl:space-x-reverse">
+              <Button 
+                size="sm" 
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => {
+                  // محاكاة اتصال التطبيق للعرض التوضيحي
+                  alert('🔧 هذا للعرض التوضيحي فقط\nفي الواقع، سيتم اتصال التطبيق تلقائياً عند تشغيله على سطح المكتب')
+                }}
+              >
+                💻 تحميل التطبيق
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => {
+                  alert('ℹ️ إرشادات تشغيل التطبيق:\n\n1. تحميل التطبيق من الرابط المخصص\n2. تثبيت التطبيق على جهاز العمل\n3. تسجيل الدخول بنفس بيانات الموقع\n4. سيتم اتصال التطبيق تلقائياً')
+                }}
+              >
+                ❓ المساعدة
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* حالة الحضور الحالية */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center space-x-2 rtl:space-x-reverse">
+              <Clock className="w-5 h-5" />
+              <span>حالة الحضور</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-blue-600 dark:text-blue-300">الحالة:</span>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  employeeData.attendance.todayStatus === 'حاضر' 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                }`}>
+                  {employeeData.attendance.todayStatus}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-blue-600 dark:text-blue-300">وقت الدخول:</span>
+                <span className="font-medium text-blue-800 dark:text-blue-200">{employeeData.desktopTracking.currentSession.checkInTime}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-blue-600 dark:text-blue-300">وقت العمل:</span>
+                <span className="font-medium text-blue-800 dark:text-blue-200">{employeeData.desktopTracking.currentSession.workingTime}</span>
+              </div>
+                             <Button 
+                className={`w-full mt-3 ${
+                  employeeData.desktopTracking.appStatus !== 'متصل'
+                    ? 'bg-gray-400 cursor-not-allowed opacity-50' 
+                    : employeeData.attendance.todayStatus === 'حاضر'
+                      ? 'bg-red-600 hover:bg-red-700'
+                      : 'bg-green-600 hover:bg-green-700'
+                }`}
+                onClick={() => handleAttendanceAction(employeeData.attendance.todayStatus === 'حاضر' ? 'الانصراف' : 'الحضور')}
+                disabled={employeeData.desktopTracking.appStatus !== 'متصل'}
+                title={employeeData.desktopTracking.appStatus !== 'متصل' ? 'يجب تشغيل تطبيق سطح المكتب أولاً' : ''}
+              >
+                {employeeData.desktopTracking.appStatus !== 'متصل' 
+                  ? '🔒 تطبيق سطح المكتب مطلوب' 
+                  : employeeData.attendance.todayStatus === 'حاضر' 
+                    ? '🔴 تسجيل الانصراف' 
+                    : '🟢 تسجيل الحضور'
+                }
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-green-800 dark:text-green-200 flex items-center space-x-2 rtl:space-x-reverse">
+              <Activity className="w-5 h-5" />
+              <span>النشاط اليوم</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-green-600 dark:text-green-300">وقت النشاط:</span>
+                <span className="font-medium text-green-800 dark:text-green-200">{employeeData.desktopTracking.currentSession.activeTime}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-green-600 dark:text-green-300">وقت عدم النشاط:</span>
+                <span className="font-medium text-orange-600 dark:text-orange-400">{employeeData.desktopTracking.currentSession.idleTime}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-green-600 dark:text-green-300">مستوى النشاط:</span>
+                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                  employeeData.desktopTracking.todayStats.activityLevel === 'عالي'
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                    : employeeData.desktopTracking.todayStats.activityLevel === 'متوسط'
+                      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                      : employeeData.desktopTracking.todayStats.activityLevel === 'غير متاح'
+                        ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                }`}>
+                  {employeeData.desktopTracking.todayStats.activityLevel}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
+                <div 
+                  className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${employeeData.desktopTracking.todayStats.productivityScore}%` }}
+                ></div>
+              </div>
+              <div className="text-center text-sm text-green-600 dark:text-green-300">
+                نسبة الإنتاجية: {employeeData.desktopTracking.todayStats.productivityScore}%
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-purple-800 dark:text-purple-200 flex items-center space-x-2 rtl:space-x-reverse">
+              <Eye className="w-5 h-5" />
+              <span>المراقبة</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-purple-600 dark:text-purple-300">حالة التطبيق:</span>
+                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                  employeeData.desktopTracking.appStatus === 'متصل'
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                }`}>
+                  {employeeData.desktopTracking.appStatus}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-purple-600 dark:text-purple-300">لقطات الشاشة:</span>
+                <span className="font-medium text-purple-800 dark:text-purple-200">{employeeData.desktopTracking.todayStats.screenshotCount}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-purple-600 dark:text-purple-300">آخر نشاط:</span>
+                <span className="font-medium text-purple-800 dark:text-purple-200 text-xs">
+                  {new Date(employeeData.desktopTracking.currentSession.lastActivity).toLocaleTimeString('ar-EG')}
+                </span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className={`h-full transition-all duration-1000 ${
+                  employeeData.desktopTracking.currentSession.isActive 
+                    ? 'bg-green-500 animate-pulse' 
+                    : 'bg-gray-400'
+                }`} style={{ width: '100%' }}></div>
+              </div>
+              <div className="text-center text-xs text-purple-600 dark:text-purple-300">
+                {employeeData.desktopTracking.currentSession.isActive ? '🟢 نشط حالياً' : '🔴 غير نشط'}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* الإحصائيات الأسبوعية */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
+            <BarChart3 className="w-5 h-5" />
+            <span>إحصائيات الأسبوع</span>
+          </CardTitle>
+          <CardDescription>تتبع ساعات العمل والإنتاجية خلال الأسبوع</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={employeeData.desktopTracking.weeklyStats}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="day" />
+              <YAxis />
+              <Tooltip 
+                formatter={(value, name) => [
+                  name === 'productivity' ? `${value}%` : value, 
+                  name === 'productivity' ? 'الإنتاجية' : name === 'workTime' ? 'وقت العمل' : 'وقت عدم النشاط'
+                ]}
+              />
+              <Legend />
+              <Bar dataKey="productivity" fill="#10b981" name="الإنتاجية %" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* لقطات الشاشة الأخيرة */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+              <Eye className="w-5 h-5" />
+              <span>لقطات الشاشة الأخيرة</span>
+            </div>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              🔒 للمشاهدة فقط - لا يمكن المسح
+            </span>
+          </CardTitle>
+          <CardDescription>
+            يتم أخذ لقطات عشوائية كل فترة لضمان الحضور الفعلي - البيانات محمية ولا يمكن مسحها
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {employeeData.desktopTracking.recentScreenshots.map((screenshot) => (
+              <div 
+                key={screenshot.id}
+                className="border rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                onClick={() => openScreenshotModal(screenshot)}
+              >
+                <div className="w-full h-32 bg-gray-200 dark:bg-gray-700 rounded-lg mb-3 flex items-center justify-center">
+                  <Eye className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                    لقطة شاشة
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                      {screenshot.timestamp}
+                    </span>
+                    <Button size="sm" variant="outline" className="h-6 text-xs">
+                      عرض
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {screenshot.activity}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {employeeData.desktopTracking.recentScreenshots.length === 0 && (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <Eye className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+              <p>لا توجد لقطات شاشة متاحة</p>
+              <p className="text-sm">تأكد من تشغيل تطبيق سطح المكتب</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* تعليمات وإرشادات */}
+      <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+        <CardHeader>
+          <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center space-x-2 rtl:space-x-reverse">
+            <BookOpen className="w-5 h-5" />
+            <span>إرشادات نظام مراقبة سطح المكتب</span>
+          </CardTitle>
+          <CardDescription className="text-blue-600 dark:text-blue-400">
+            دليل شامل لاستخدام نظام مراقبة الحضور والإنتاجية
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4 text-sm text-blue-700 dark:text-blue-300">
+              <h4 className="font-semibold text-blue-800 dark:text-blue-200 flex items-center">
+                <Shield className="w-4 h-4 ml-2" />
+                المتطلبات الأساسية
+              </h4>
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">تطبيق سطح المكتب</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      تحميل وتثبيت التطبيق على جهاز العمل المخصص
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">اتصال إنترنت مستقر</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      لضمان مزامنة البيانات مع الخادم
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">تسجيل الدخول</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      استخدام نفس بيانات تسجيل الدخول للموقع
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-sm text-blue-700 dark:text-blue-300">
+              <h4 className="font-semibold text-blue-800 dark:text-blue-200 flex items-center">
+                <Activity className="w-4 h-4 ml-2" />
+                المراقبة والتتبع
+              </h4>
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">تتبع النشاط التلقائي</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      مراقبة حركة الماوس ولوحة المفاتيح لحساب وقت العمل الفعلي
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">لقطات الشاشة العشوائية</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      كل 10-30 دقيقة للتحقق من الحضور الفعلي - محمية من المسح
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">حساب نسبة الإنتاجية</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      بناءً على نسبة الوقت النشط إلى الوقت الإجمالي
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-sm text-blue-700 dark:text-blue-300">
+              <h4 className="font-semibold text-blue-800 dark:text-blue-200 flex items-center">
+                <Clock className="w-4 h-4 ml-2" />
+                تسجيل الحضور
+              </h4>
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">شرط التطبيق النشط</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      لا يمكن تسجيل الحضور من الموقع إلا بوجود التطبيق متصل
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">التسجيل المزدوج</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      يمكن التسجيل من التطبيق أو الموقع (بشرط اتصال التطبيق)
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">التوقيت الدقيق</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      تسجيل دقيق لأوقات الدخول والخروج والفترات الزمنية
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-sm text-blue-700 dark:text-blue-300">
+              <h4 className="font-semibold text-blue-800 dark:text-blue-200 flex items-center">
+                <Eye className="w-4 h-4 ml-2" />
+                الخصوصية والأمان
+              </h4>
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">بيانات محمية</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      جميع البيانات مشفرة ومحمية وفقاً لمعايير الأمان
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">مشاهدة فقط</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      يمكن للموظف مشاهدة لقطات الشاشة الخاصة به فقط
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                  <Archive className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">عدم إمكانية المسح</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      البيانات محمية ولا يمكن حذفها من قبل الموظف
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-blue-200 dark:border-blue-700">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+              <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-amber-800 dark:text-amber-200">تنبيه مهم</h4>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                    نظام المراقبة مصمم لضمان العدالة والشفافية في بيئة العمل. جميع البيانات تُستخدم لأغراض إدارية فقط ومحمية بأعلى معايير الخصوصية. في حالة وجود أي استفسارات، يرجى التواصل مع قسم الموارد البشرية.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* نافذة عرض الصورة */}
+      {showScreenshotModal && selectedScreenshot && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                لقطة شاشة - {selectedScreenshot.timestamp}
+              </h3>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowScreenshotModal(false)}
+              >
+                إغلاق
+              </Button>
+            </div>
+            <div className="p-4">
+              <div className="w-full h-96 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-4">
+                <div className="text-center">
+                  <Eye className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-300">معاينة لقطة الشاشة</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    النشاط: {selectedScreenshot.activity}
+                  </p>
+                </div>
+              </div>
+              <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+                🔒 هذه الصورة محمية ولا يمكن تحميلها أو مسحها
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 
@@ -1217,6 +1753,7 @@ const MePage = ({ user }) => {
   const renderTabContent = () => {
     switch(activeTab) {
       case 'overview': return renderOverview()
+      case 'desktop-tracking': return renderDesktopTracking()
       case 'salary': return renderSalary()
       case 'attendance': return renderAttendance()
       case 'performance': return renderPerformance()
