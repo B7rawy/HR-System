@@ -34,19 +34,19 @@ const EmployeeDetailsPage = () => {
       phone: '+20 100 123 4567',
       position: 'مطور برمجيات رئيسي',
       department: 'التطوير',
-      baseSalary: 15000,
-      currentSalary: 15000,
+      baseSalary: 10800,
+      currentSalary: 10800,
       joinDate: '2022-01-15',
       status: 'نشط',
       teamLead: true,
       allowances: {
-        transportation: 800,
-        housing: 1500,
-        meal: 500
+        transportation: 500,
+        housing: 1000,
+        meal: 300
       },
       deductions: {
-        socialInsurance: 750,
-        tax: 1200
+        socialInsurance: 500,
+        tax: 800
       },
       monthlyAdjustments: {
         bonuses: [
@@ -99,19 +99,19 @@ const EmployeeDetailsPage = () => {
       phone: '+20 101 234 5678',
       position: 'محاسبة مالية',
       department: 'المالية',
-      baseSalary: 12000,
-      currentSalary: 12000,
+      baseSalary: 12850,
+      currentSalary: 12850,
       joinDate: '2022-03-20',
       status: 'نشط',
       teamLead: false,
       allowances: {
-        transportation: 600,
-        housing: 1200,
-        meal: 400
+        transportation: 400,
+        housing: 800,
+        meal: 200
       },
       deductions: {
-        socialInsurance: 600,
-        tax: 800
+        socialInsurance: 642,
+        tax: 950
       },
       monthlyAdjustments: {
         bonuses: [],
@@ -161,19 +161,19 @@ const EmployeeDetailsPage = () => {
       phone: '+20 102 345 6789',
       position: 'أخصائي موارد بشرية',
       department: 'الموارد البشرية',
-      baseSalary: 11000,
-      currentSalary: 11000,
+      baseSalary: 10165,
+      currentSalary: 10165,
       joinDate: '2023-05-10',
       status: 'نشط',
       teamLead: false,
       allowances: {
-        transportation: 550,
-        housing: 1000,
-        meal: 350
+        transportation: 350,
+        housing: 700,
+        meal: 200
       },
       deductions: {
-        socialInsurance: 550,
-        tax: 750
+        socialInsurance: 508,
+        tax: 850
       },
       monthlyAdjustments: {
         bonuses: [],
@@ -360,7 +360,7 @@ const EmployeeDetailsPage = () => {
                       employee.monthlyAdjustments.bonuses.reduce((sum, bonus) => sum + bonus.amount, 0) -
                       Object.values(employee.deductions).reduce((sum, val) => sum + val, 0) -
                       employee.monthlyAdjustments.deductions.reduce((sum, deduction) => sum + deduction.amount, 0)
-                    ).toLocaleString("en-US")} ج.م
+                    ).toLocaleString()} ج.م
                   </span>
                 </div>
               </CardContent>
@@ -453,35 +453,35 @@ const EmployeeDetailsPage = () => {
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">الراتب الأساسي:</span>
-                        <span className="font-bold dark:text-white">{employee.baseSalary.toLocaleString("en-US")} ج.م</span>
+                        <span className="font-bold dark:text-white">{employee.baseSalary.toLocaleString()} ج.م</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">بدل مواصلات:</span>
-                        <span className="text-green-600 dark:text-green-400">+{employee.allowances.transportation.toLocaleString("en-US")} ج.م</span>
+                        <span className="text-green-600 dark:text-green-400">+{employee.allowances.transportation.toLocaleString()} ج.م</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">بدل سكن:</span>
-                        <span className="text-green-600 dark:text-green-400">+{employee.allowances.housing.toLocaleString("en-US")} ج.م</span>
+                        <span className="text-green-600 dark:text-green-400">+{employee.allowances.housing.toLocaleString()} ج.م</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">بدل وجبة:</span>
-                        <span className="text-green-600 dark:text-green-400">+{employee.allowances.meal.toLocaleString("en-US")} ج.م</span>
+                        <span className="text-green-600 dark:text-green-400">+{employee.allowances.meal.toLocaleString()} ج.م</span>
                       </div>
                     </div>
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">التأمينات:</span>
-                        <span className="text-red-600 dark:text-red-400">-{employee.deductions.socialInsurance.toLocaleString("en-US")} ج.م</span>
+                        <span className="text-red-600 dark:text-red-400">-{employee.deductions.socialInsurance.toLocaleString()} ج.م</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">الضرائب:</span>
-                        <span className="text-red-600 dark:text-red-400">-{employee.deductions.tax.toLocaleString("en-US")} ج.م</span>
+                        <span className="text-red-600 dark:text-red-400">-{employee.deductions.tax.toLocaleString()} ج.م</span>
                       </div>
                       {employee.monthlyAdjustments.bonuses.length > 0 && (
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-gray-400">مكافآت إضافية:</span>
                           <span className="text-green-600 dark:text-green-400">
-                            +{employee.monthlyAdjustments.bonuses.reduce((sum, bonus) => sum + bonus.amount, 0).toLocaleString("en-US")} ج.م
+                            +{employee.monthlyAdjustments.bonuses.reduce((sum, bonus) => sum + bonus.amount, 0).toLocaleString()} ج.م
                           </span>
                         </div>
                       )}
@@ -489,7 +489,7 @@ const EmployeeDetailsPage = () => {
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-gray-400">خصومات إضافية:</span>
                           <span className="text-red-600 dark:text-red-400">
-                            -{employee.monthlyAdjustments.deductions.reduce((sum, deduction) => sum + deduction.amount, 0).toLocaleString("en-US")} ج.م
+                            -{employee.monthlyAdjustments.deductions.reduce((sum, deduction) => sum + deduction.amount, 0).toLocaleString()} ج.م
                           </span>
                         </div>
                       )}
@@ -505,7 +505,7 @@ const EmployeeDetailsPage = () => {
                         employee.monthlyAdjustments.bonuses.reduce((sum, bonus) => sum + bonus.amount, 0) -
                         Object.values(employee.deductions).reduce((sum, val) => sum + val, 0) -
                         employee.monthlyAdjustments.deductions.reduce((sum, deduction) => sum + deduction.amount, 0)
-                      ).toLocaleString("en-US")} ج.م
+                      ).toLocaleString()} ج.م
                     </span>
                   </div>
                 </div>
@@ -632,11 +632,11 @@ const EmployeeDetailsPage = () => {
                       {employee.salaryHistory.map((salary, index) => (
                         <tr key={index} className="border-b dark:border-gray-700">
                           <td className="py-2 dark:text-white">{salary.date}</td>
-                          <td className="py-2 dark:text-white">{salary.baseSalary.toLocaleString("en-US")}</td>
-                          <td className="py-2 text-green-600 dark:text-green-400">+{salary.allowances.toLocaleString("en-US")}</td>
-                          <td className="py-2 text-green-600 dark:text-green-400">+{salary.bonuses.toLocaleString("en-US")}</td>
-                          <td className="py-2 text-red-600 dark:text-red-400">-{salary.deductions.toLocaleString("en-US")}</td>
-                          <td className="py-2 font-bold text-blue-600 dark:text-blue-400">{salary.netSalary.toLocaleString("en-US")}</td>
+                          <td className="py-2 dark:text-white">{salary.baseSalary.toLocaleString()}</td>
+                          <td className="py-2 text-green-600 dark:text-green-400">+{salary.allowances.toLocaleString()}</td>
+                          <td className="py-2 text-green-600 dark:text-green-400">+{salary.bonuses.toLocaleString()}</td>
+                          <td className="py-2 text-red-600 dark:text-red-400">-{salary.deductions.toLocaleString()}</td>
+                          <td className="py-2 font-bold text-blue-600 dark:text-blue-400">{salary.netSalary.toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>

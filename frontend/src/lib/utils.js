@@ -5,32 +5,32 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs))
 }
 
-// تنسيق الأرقام بالعربية
+// تنسيق الأرقام بالإنجليزية
 export function formatNumber(number) {
-  return new Intl.NumberFormat('ar-EG').format(number)
+  return new Intl.NumberFormat('en-US').format(number)
 }
 
-// تنسيق العملة
+// تنسيق العملة بالأرقام الإنجليزية - الجنيه المصري
 export function formatCurrency(amount, currency = 'EGP') {
-  return new Intl.NumberFormat('ar-EG', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: 0
-  }).format(amount)
+  }).format(amount).replace('EGP', 'ج.م').replace('SAR', 'ج.م')
 }
 
-// تنسيق التاريخ بالعربية
+// تنسيق التاريخ بالأرقام الإنجليزية
 export function formatDate(date) {
-  return new Intl.DateTimeFormat('ar-EG', {
+  return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+    month: '2-digit',
+    day: '2-digit'
   }).format(new Date(date))
 }
 
-// تنسيق التاريخ المختصر
+// تنسيق التاريخ المختصر بالأرقام الإنجليزية
 export function formatShortDate(date) {
-  return new Intl.DateTimeFormat('ar-EG', {
+  return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
@@ -47,14 +47,10 @@ export function toEnglishDigits(str) {
   })
 }
 
-// تحويل النص لأرقام عربية
+// تحويل النص لأرقام عربية (مع الإبقاء على الدالة للتوافق العكسي)
 export function toArabicDigits(str) {
-  const arabicDigits = '٠١٢٣٤٥٦٧٨٩'
-  const englishDigits = '0123456789'
-  
-  return str.replace(/[0-9]/g, (match) => {
-    return arabicDigits[englishDigits.indexOf(match)]
-  })
+  // تم تعطيل التحويل - سيتم إرجاع الأرقام الإنجليزية
+  return str.toString()
 }
 
 // دالة لحساب الإجمالي

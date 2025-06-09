@@ -324,7 +324,7 @@ const WhatsAppDashboard = () => {
                     allowances: '3,000',
                     deductions: '500',
                     netSalary: '12,500',
-                    paymentDate: new Date().toLocaleDateString('ar-EG'),
+                    paymentDate: new Date().toLocaleDateString('en-US'),
                     paymentMethod: 'تحويل بنكي',
                     transactionId: 'TXN' + Date.now().toString().slice(-6),
                     subject: 'مراجعة المشاريع الشهرية',
@@ -357,7 +357,7 @@ const WhatsAppDashboard = () => {
             // Add to test history
             const historyEntry = {
                 id: Date.now(),
-                timestamp: new Date().toLocaleString('ar-EG'),
+                timestamp: new Date().toLocaleString('en-US'),
                 type: testForm.templateName ? 'template' : 'text',
                 content: testForm.templateName || testForm.message.substring(0, 50) + '...',
                 templateName: testForm.templateName || null,
@@ -393,7 +393,7 @@ const WhatsAppDashboard = () => {
             
             const historyEntry = {
                 id: Date.now(),
-                timestamp: new Date().toLocaleString('ar-EG'),
+                timestamp: new Date().toLocaleString('en-US'),
                 type: 'quick',
                 content: messageText,
                 status: 'sent',
@@ -427,7 +427,7 @@ const WhatsAppDashboard = () => {
                 },
                 {
                     name: 'salary_notification',
-                    content: '💰 إشعار راتب - {{month}}\n\nعزيزي/عزيزتي {{employeeName}},\n\nتم صرف راتبك لشهر {{month}} بنجاح! 🎉\n\n💵 المبلغ: {{amount}} ريال سعودي\n📅 تاريخ الصرف: {{paymentDate}}\n🏦 طريقة الدفع: {{paymentMethod}}\n📋 رقم المعاملة: {{transactionId}}\n\n📊 تفاصيل الراتب:\n• الراتب الأساسي: {{basicSalary}} ريال\n• البدلات: {{allowances}} ريال\n• الخصوميات: {{deductions}} ريال\n• صافي الراتب: {{netSalary}} ريال\n\n🔗 يمكنك مراجعة كشف الراتب التفصيلي من النظام.\n\nشكراً لجهودك المتميزة! 🙏',
+                    content: '💰 إشعار راتب - {{month}}\n\nعزيزي/عزيزتي {{employeeName}},\n\nتم صرف راتبك لشهر {{month}} بنجاح! 🎉\n\n💵 المبلغ: {{amount}} جنيه مصري\n📅 تاريخ الصرف: {{paymentDate}}\n🏦 طريقة الدفع: {{paymentMethod}}\n📋 رقم المعاملة: {{transactionId}}\n\n📊 تفاصيل الراتب:\n• الراتب الأساسي: {{basicSalary}} ج.م\n• البدلات: {{allowances}} ج.م\n• الخصوميات: {{deductions}} ج.م\n• صافي الراتب: {{netSalary}} ج.م\n\n🔗 يمكنك مراجعة كشف الراتب التفصيلي من النظام.\n\nشكراً لجهودك المتميزة! 🙏',
                     description: 'إشعار صرف الراتب الشهري - مفصل',
                     category: 'payroll',
                     variables: ['employeeName', 'month', 'amount', 'paymentDate', 'paymentMethod', 'transactionId', 'basicSalary', 'allowances', 'deductions', 'netSalary']
@@ -670,7 +670,7 @@ const WhatsAppDashboard = () => {
                                         <>
                                             <p><strong>الرقم:</strong> {status.authInfo.number}</p>
                                             <p><strong>الاسم:</strong> {status.authInfo.name}</p>
-                                            <p><strong>وقت الاتصال:</strong> {new Date(status.authInfo.connectedAt).toLocaleString('ar-SA')}</p>
+                                            <p><strong>وقت الاتصال:</strong> {new Date(status.authInfo.connectedAt).toLocaleString('en-US')}</p>
                                         </>
                                     )}
                                 </div>
@@ -761,7 +761,7 @@ const WhatsAppDashboard = () => {
                                 </button>
                                 <button 
                                     className="btn btn-outline-info"
-                                    onClick={() => sendQuickTestMessage(`تم الإرسال في ${new Date().toLocaleString('ar-EG')} 📅⏰`)}
+                                    onClick={() => sendQuickTestMessage(`تم الإرسال في ${new Date().toLocaleString('en-US')} 📅⏰`)}
                                     disabled={loading || !status.isReady}
                                 >
                                     🕐 رسالة بالتوقيت
@@ -1156,7 +1156,7 @@ const WhatsAppDashboard = () => {
                                         <div className="log-header">
                                             <span className="log-type">{log.type}</span>
                                             <span className="log-time">
-                                                {new Date(log.timestamp).toLocaleString('ar-SA')}
+                                                {new Date(log.timestamp).toLocaleString('en-US')}
                                             </span>
                                         </div>
                                         <div className="log-message">{log.message}</div>

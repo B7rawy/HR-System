@@ -66,7 +66,7 @@ const TopHeader = ({ user, onLogout }) => {
   }
 
   const formatTime = (date) => {
-    return date.toLocaleTimeString('ar-SA', {
+    return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
@@ -74,7 +74,7 @@ const TopHeader = ({ user, onLogout }) => {
   }
 
   const formatDate = (date) => {
-    return date.toLocaleDateString('ar-SA', {
+    return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',

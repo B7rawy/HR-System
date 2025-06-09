@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button'
 import { formatCurrency, formatDate } from '../utils/formatters'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { TrendingUp, TrendingDown, Users, DollarSign, AlertTriangle, Eye, Download, Calendar } from 'lucide-react'
+import { TrendingUp, TrendingDown, Users, DollarSign, AlertTriangle, Eye, Download, Calendar, UserCheck, Clock, MapPin, Wifi, Phone, Mail } from 'lucide-react'
 
 const DashboardPage = () => {
   // بيانات تجريبية
@@ -47,6 +47,94 @@ const DashboardPage = () => {
     { id: 1, type: 'warning', message: 'تجاوز ميزانية التسويق بنسبة 15%', priority: 'عالي' },
     { id: 2, type: 'info', message: '3 رواتب في انتظار الاعتماد', priority: 'متوسط' },
     { id: 3, type: 'success', message: 'تم تحصيل 95% من الإيرادات المستهدفة', priority: 'منخفض' },
+  ]
+
+  // بيانات الموظفين النشطين
+  const activeEmployees = [
+    {
+      id: 1,
+      name: 'أحمد محمد علي',
+      position: 'مدير التسويق',
+      department: 'التسويق',
+      avatar: '/api/placeholder/40/40',
+      checkInTime: '08:15',
+      status: 'حاضر',
+      location: 'المكتب الرئيسي',
+      email: 'ahmed.mohamed@company.com',
+      phone: '+201012345678',
+      workingHours: '8.5 ساعة',
+      lastActivity: 'منذ 5 دقائق'
+    },
+    {
+      id: 2,
+      name: 'فاطمة أحمد السيد',
+      position: 'محاسبة أولى',
+      department: 'المالية',
+      avatar: '/api/placeholder/40/40',
+      checkInTime: '08:00',
+      status: 'حاضر',
+      location: 'المكتب الرئيسي',
+      email: 'fatima.ahmed@company.com',
+      phone: '+201123456789',
+      workingHours: '8.7 ساعة',
+      lastActivity: 'منذ 2 دقيقة'
+    },
+    {
+      id: 3,
+      name: 'محمد خالد العمري',
+      position: 'مطور تطبيقات',
+      department: 'تقنية المعلومات',
+      avatar: '/api/placeholder/40/40',
+      checkInTime: '09:30',
+      status: 'حاضر',
+      location: 'العمل عن بُعد',
+      email: 'mohammed.khaled@company.com',
+      phone: '+201234567890',
+      workingHours: '7.2 ساعة',
+      lastActivity: 'نشط الآن'
+    },
+    {
+      id: 4,
+      name: 'سارة إبراهيم النور',
+      position: 'مختصة موارد بشرية',
+      department: 'الموارد البشرية',
+      avatar: '/api/placeholder/40/40',
+      checkInTime: '08:45',
+      status: 'حاضر',
+      location: 'المكتب الرئيسي',
+      email: 'sara.ibrahim@company.com',
+      phone: '+201098765432',
+      workingHours: '8.3 ساعة',
+      lastActivity: 'منذ 10 دقائق'
+    },
+    {
+      id: 5,
+      name: 'عمر حسن المالكي',
+      position: 'مدير المبيعات',
+      department: 'المبيعات',
+      avatar: '/api/placeholder/40/40',
+      checkInTime: '07:45',
+      status: 'في اجتماع',
+      location: 'قاعة الاجتماعات الكبرى',
+      email: 'omar.hassan@company.com',
+      phone: '+201087654321',
+      workingHours: '9.1 ساعة',
+      lastActivity: 'في اجتماع منذ 30 دقيقة'
+    },
+    {
+      id: 6,
+      name: 'نورا عبدالله الزهراني',
+      position: 'مصممة جرافيك',
+      department: 'التصميم والإبداع',
+      avatar: '/api/placeholder/40/40',
+      checkInTime: '09:00',
+      status: 'حاضر',
+      location: 'استديو التصميم',
+      email: 'nora.abdullah@company.com',
+      phone: '+201156789123',
+      workingHours: '7.8 ساعة',
+      lastActivity: 'نشطة الآن'
+    }
   ]
 
   const StatCard = ({ title, value, change, icon: Icon, positive }) => (
@@ -124,6 +212,156 @@ const DashboardPage = () => {
           icon={AlertTriangle}
         />
       </div>
+
+      {/* الموظفين النشطين */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <UserCheck className="w-5 h-5 text-green-500 dark:text-green-400" />
+                الموظفين النشطين
+              </CardTitle>
+              <CardDescription>الموظفين المسجلين حضور اليوم</CardDescription>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-green-600 dark:text-green-400 font-medium">{activeEmployees.filter(emp => emp.status === 'حاضر').length} حاضر</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span className="text-blue-600 dark:text-blue-400 font-medium">{activeEmployees.filter(emp => emp.status === 'في اجتماع').length} في اجتماع</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <span className="text-orange-600 dark:text-orange-400 font-medium">{activeEmployees.filter(emp => emp.location === 'العمل عن بُعد').length} عن بُعد</span>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            {activeEmployees.map((employee) => (
+              <div
+                key={employee.id}
+                className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                {/* حالة الموظف */}
+                <div className="absolute top-3 right-3">
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                    employee.status === 'حاضر' 
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                      : employee.status === 'في اجتماع'
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                      : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+                  }`}>
+                    <div className={`w-2 h-2 rounded-full ${
+                      employee.status === 'حاضر' ? 'bg-green-500' 
+                      : employee.status === 'في اجتماع' ? 'bg-blue-500' 
+                      : 'bg-orange-500'
+                    }`}></div>
+                    {employee.status}
+                  </div>
+                </div>
+
+                {/* معلومات الموظف الأساسية */}
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md">
+                    {employee.name.split(' ')[0].charAt(0)}{employee.name.split(' ')[1]?.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                      {employee.name}
+                    </h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                      {employee.position}
+                    </p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                      {employee.department}
+                    </p>
+                  </div>
+                </div>
+
+                {/* تفاصيل الحضور */}
+                <div className="space-y-2 mb-3">
+                  <div className="flex items-center gap-2 text-xs">
+                    <Clock className="w-3 h-3 text-gray-500" />
+                    <span className="text-gray-600 dark:text-gray-400">وقت الوصول:</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{employee.checkInTime}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <MapPin className="w-3 h-3 text-gray-500" />
+                    <span className="text-gray-600 dark:text-gray-400">الموقع:</span>
+                    <span className="font-medium text-gray-900 dark:text-white truncate">{employee.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <Wifi className="w-3 h-3 text-gray-500" />
+                    <span className="text-gray-600 dark:text-gray-400">آخر نشاط:</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{employee.lastActivity}</span>
+                  </div>
+                </div>
+
+                {/* إحصائيات العمل */}
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 mb-3">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">ساعات العمل اليوم</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">{employee.workingHours}</span>
+                  </div>
+                </div>
+
+                {/* أزرار التواصل */}
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 gap-1 text-xs h-7 border-gray-300 dark:border-gray-600"
+                  >
+                    <Phone className="w-3 h-3" />
+                    اتصال
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 gap-1 text-xs h-7 border-gray-300 dark:border-gray-600"
+                  >
+                    <Mail className="w-3 h-3" />
+                    إيميل
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* إحصائيات سريعة للحضور */}
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {activeEmployees.filter(emp => emp.status === 'حاضر').length}
+              </div>
+              <div className="text-xs text-green-700 dark:text-green-300 font-medium">حاضر اليوم</div>
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-center">
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {(activeEmployees.reduce((total, emp) => total + parseFloat(emp.workingHours), 0) / activeEmployees.length).toFixed(1)}
+              </div>
+              <div className="text-xs text-blue-700 dark:text-blue-300 font-medium">متوسط الساعات</div>
+            </div>
+            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 text-center">
+              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                {activeEmployees.filter(emp => emp.location === 'العمل عن بُعد').length}
+              </div>
+              <div className="text-xs text-orange-700 dark:text-orange-300 font-medium">عمل عن بُعد</div>
+            </div>
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 text-center">
+              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                {((activeEmployees.length / stats.totalEmployees) * 100).toFixed(0)}%
+              </div>
+              <div className="text-xs text-purple-700 dark:text-purple-300 font-medium">معدل الحضور</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* الرسوم البيانية */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

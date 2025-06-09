@@ -52,18 +52,18 @@ const EmployeesPage = () => {
         name: 'أحمد محمد علي',
         position: 'مطور برمجيات',
         department: 'تقنية المعلومات',
-        phone: '+201012345678',
+        phone: '+201234567890',
         email: 'ahmed.mohamed@company.com',
         hireDate: '2022-01-15',
-        baseSalary: 12000, // راتب مناسب للسوق المصري
+        baseSalary: 8000,
         allowances: {
-          transportation: 800,
-          housing: 1500,
-          food: 500
+          transportation: 500,
+          housing: 1000,
+          food: 300
         },
         deductions: {
-          insurance: 350,
-          tax: 650
+          insurance: 200,
+          tax: 400
         },
         monthlyAdjustments: {
           bonuses: [],
@@ -85,18 +85,18 @@ const EmployeesPage = () => {
         name: 'فاطمة حسن محمود',
         position: 'محاسبة',
         department: 'المالية',
-        phone: '+201123456789',
+        phone: '+201987654321',
         email: 'fatma.hassan@company.com',
         hireDate: '2021-03-10',
-        baseSalary: 10000,
+        baseSalary: 7000,
         allowances: {
-          transportation: 600,
-          housing: 1200,
-          food: 400
+          transportation: 400,
+          housing: 800,
+          food: 250
         },
         deductions: {
-          insurance: 300,
-          tax: 550
+          insurance: 180,
+          tax: 350
         },
         monthlyAdjustments: {
           bonuses: [
@@ -123,15 +123,15 @@ const EmployeesPage = () => {
         phone: '+201016772118',
         email: 'kareem.bahrawi@company.com',
         hireDate: '2023-09-15',
-        baseSalary: 9500,
+        baseSalary: 6500,
         allowances: {
-          transportation: 600,
-          housing: 1000,
-          food: 400
+          transportation: 400,
+          housing: 700,
+          food: 250
         },
         deductions: {
-          insurance: 250,
-          tax: 450
+          insurance: 150,
+          tax: 300
         },
         monthlyAdjustments: {
           bonuses: [],
@@ -150,21 +150,21 @@ const EmployeesPage = () => {
       },
       {
         id: 4,
-        name: 'ماجد عبدالله الشامي',
+        name: 'ماجد',
         position: 'محاسب',
         department: 'الحسابات',
         phone: '+201080606086',
         email: 'majed@company.com',
         hireDate: '2024-01-10',
-        baseSalary: 10500,
+        baseSalary: 7000,
         allowances: {
-          transportation: 700,
-          housing: 1200,
-          food: 450
+          transportation: 500,
+          housing: 800,
+          food: 300
         },
         deductions: {
-          insurance: 300,
-          tax: 550
+          insurance: 200,
+          tax: 350
         },
         monthlyAdjustments: {
           bonuses: [],
@@ -203,13 +203,13 @@ const EmployeesPage = () => {
     employee.department.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  // تنسيق العملة بالأرقام الإنجليزية - الجنيه المصري
+  // تنسيق العملة بالأرقام الإنجليزية
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'EGP',
+      currency: 'SAR',
       minimumFractionDigits: 0
-    }).format(amount).replace('EGP', 'ج.م')
+    }).format(amount).replace('SAR', 'ريال')
   }
 
   // تنسيق التاريخ بالأرقام الإنجليزية
@@ -572,11 +572,11 @@ const EmployeesPage = () => {
                   try {
                     const results = await Promise.all(
                       employees.map(async (employee, index) => {
-                        const currentDate = new Date().toLocaleDateString('en-US')
+                        const currentDate = new Date().toLocaleDateString('ar-EG')
                         const currentSalary = calculateCurrentSalary(employee)
                         
                         const salaryMessage = `
-📊 *كشف راتب شهر ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}*
+📊 *كشف راتب شهر ${new Date().toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' })}*
 
 السيد/ة: *${employee.name}*
 المنصب: ${employee.position}
@@ -630,7 +630,7 @@ const EmployeesPage = () => {
                   try {
                     const results = await Promise.all(
                       employees.map(async (employee, index) => {
-                        const currentDate = new Date().toLocaleDateString('en-US')
+                        const currentDate = new Date().toLocaleDateString('ar-EG')
                         
                         const leaveMessage = `
 🏖️ *تحديث رصيد الإجازات*

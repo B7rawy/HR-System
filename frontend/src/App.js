@@ -4,6 +4,7 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { NotificationProvider } from './components/NotificationSystem'
 import Layout from './components/Layout'
 import LoginPage from './pages/LoginPage'
+import SignUpPage from './pages/SignUpPage'
 import DashboardPage from './pages/DashboardPage'
 import TransactionsPage from './pages/TransactionsPage'
 import ApprovalsPage from './pages/ApprovalsPage'
@@ -70,7 +71,26 @@ function App() {
               user ? (
                 <Navigate to={user.role === 'admin' ? '/' : '/me'} replace />
               ) : (
-                <LoginPage onLogin={handleLogin} />
+                <LoginPage 
+                  onLogin={handleLogin} 
+                />
+              )
+            }
+          />
+
+          {/* صفحة إنشاء حساب جديد */}
+          <Route
+            path="/signup"
+            element={
+              user ? (
+                <Navigate to={user.role === 'admin' ? '/' : '/me'} replace />
+              ) : (
+                <SignUpPage 
+                  onSignUp={(userData) => {
+                    // يمكن إضافة منطق إضافي هنا
+                    console.log('تم إنشاء حساب جديد:', userData)
+                  }}
+                />
               )
             }
           />

@@ -417,7 +417,7 @@ const WhatsAppConnectionPage = () => {
                         {qrMetadata.timestamp && (
                             <div className="qr-metadata">
                                 <small>
-                                    تم إنتاج الرمز: {qrMetadata.timestamp.toLocaleTimeString('ar-SA')}
+                                    تم إنتاج الرمز: {qrMetadata.timestamp.toLocaleTimeString('en-US')}
                                     {qrMetadata.attempts > 1 && ` (المحاولة ${qrMetadata.attempts})`}
                                 </small>
                             </div>

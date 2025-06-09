@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { 
   User, 
   Calendar,
@@ -32,7 +33,12 @@ import {
   Phone as PhoneIcon,
   UserCheck,
   BookOpen,
-  Archive
+  Archive,
+  Minus,
+  AlertTriangle,
+  Calculator,
+  TrendingDown,
+  Calendar as CalendarIcon
 } from 'lucide-react'
 import { formatCurrency, formatDate } from '../utils/formatters'
 
@@ -59,22 +65,42 @@ const MePage = ({ user }) => {
     position: 'محاسبة أولى',
     department: 'القسم المالي',
     email: user.email || 'fatima@company.com',
-    phone: '0501234567',
-    address: 'الرياض، المملكة العربية السعودية',
+    phone: '01012345678',
+    address: 'مصر الجديدة، القاهرة، جمهورية مصر العربية',
     joinDate: '2022-03-15',
     employeeId: 'EMP-2024-001',
     directManager: 'أحمد محمد',
     workLocation: 'المقر الرئيسي - الدور الثالث',
     salary: {
-      basic: 8500,
-      allowances: 2000,
-      housing: 1500,
-      transportation: 800,
-      deductions: 950,
-      insurance: 450,
-      tax: 500,
-      net: 11350,
-      lastPayDate: '2024-06-01'
+      basic: 12000, // راتب مناسب للسوق المصري
+      allowances: 3000,
+      housing: 2000,
+      transportation: 1200,
+      deductions: 1500,
+      insurance: 650,
+      tax: 850,
+      hourlyDeductions: 480, // إجمالي خصومات الساعات المتأخرة
+      net: 15520, // تم تعديل الراتب الصافي ليشمل خصومات الساعات
+      lastPayDate: '2024-06-01',
+      hourlyRate: 75, // معدل خصم الساعة الواحدة بالجنيه المصري
+      requiredDailyHours: 8, // عدد الساعات المطلوبة يومياً
+              dailyDeductions: [
+          { date: '2024-06-01', requiredHours: 8, actualHours: 8, deduction: 0, hasPermission: false, reason: 'حضور كامل' },
+          { date: '2024-06-02', requiredHours: 8, actualHours: 8, deduction: 0, hasPermission: false, reason: 'حضور كامل' },
+          { date: '2024-06-03', requiredHours: 8, actualHours: 7.5, deduction: 38, hasPermission: false, reason: 'انصراف مبكر 30 دقيقة' },
+          { date: '2024-06-04', requiredHours: 8, actualHours: 8, deduction: 0, hasPermission: false, reason: 'حضور كامل' },
+          { date: '2024-06-05', requiredHours: 8, actualHours: 6, deduction: 150, hasPermission: false, reason: 'غياب جزئي - خروج مبكر ساعتين' },
+          { date: '2024-06-06', requiredHours: 8, actualHours: 0, deduction: 0, hasPermission: true, reason: 'إجازة مرضية معتمدة' },
+          { date: '2024-06-07', requiredHours: 0, actualHours: 0, deduction: 0, hasPermission: true, reason: 'عطلة أسبوعية' },
+          { date: '2024-06-08', requiredHours: 8, actualHours: 7, deduction: 75, hasPermission: false, reason: 'تأخير في الحضور - ساعة واحدة' },
+          { date: '2024-06-09', requiredHours: 8, actualHours: 5, deduction: 225, hasPermission: false, reason: 'انصراف مبكر - 3 ساعات' },
+          { date: '2024-06-10', requiredHours: 8, actualHours: 8, deduction: 0, hasPermission: false, reason: 'حضور كامل' },
+          { date: '2024-06-11', requiredHours: 8, actualHours: 7.5, deduction: 0, hasPermission: true, reason: 'إذن خروج مبكر معتمد' },
+          { date: '2024-06-12', requiredHours: 8, actualHours: 6.5, deduction: 113, hasPermission: false, reason: 'تأخير في الحضور - ساعة ونصف' },
+          { date: '2024-06-13', requiredHours: 8, actualHours: 8, deduction: 0, hasPermission: false, reason: 'حضور كامل' },
+          { date: '2024-06-14', requiredHours: 0, actualHours: 0, deduction: 0, hasPermission: true, reason: 'عطلة أسبوعية' },
+          { date: '2024-06-15', requiredHours: 8, actualHours: 4, deduction: 300, hasPermission: false, reason: 'غياب جزئي - نصف يوم بدون إذن' }
+        ]
     },
     performance: {
       rating: 4.2,
@@ -281,68 +307,253 @@ const MePage = ({ user }) => {
     </div>
   )
 
-  const renderSalary = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  const renderSalary = () => {
+    // حساب إحصائيات الخصومات
+    const totalWorkingDays = employeeData.salary.dailyDeductions.filter(day => day.requiredHours > 0).length
+    const daysWithDeductions = employeeData.salary.dailyDeductions.filter(day => day.deduction > 0).length
+    const totalMissedHours = employeeData.salary.dailyDeductions.reduce((sum, day) => {
+      if (day.requiredHours > day.actualHours && !day.hasPermission) {
+        return sum + (day.requiredHours - day.actualHours)
+      }
+      return sum
+    }, 0)
+    const averageDeductionPerDay = daysWithDeductions > 0 ? employeeData.salary.hourlyDeductions / daysWithDeductions : 0
+
+    return (
+      <div className="space-y-6">
+        {/* الصف الأول - ملخص الراتب */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
+                <DollarSign className="w-5 h-5 text-green-500 dark:text-green-400" />
+                <span>تفاصيل الراتب الشهري</span>
+              </CardTitle>
+              <CardDescription>راتب شهر يونيو 2024</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                    <p className="text-sm font-medium text-green-600 dark:text-green-400">الراتب الأساسي</p>
+                    <p className="text-xl font-bold text-green-700 dark:text-green-300">{formatCurrency(employeeData.salary.basic)}</p>
+                  </div>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400">البدلات</p>
+                    <p className="text-xl font-bold text-blue-700 dark:text-blue-300">{formatCurrency(employeeData.salary.allowances)}</p>
+                  </div>
+                  <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                    <p className="text-sm font-medium text-purple-600 dark:text-purple-400">بدل سكن</p>
+                    <p className="text-xl font-bold text-purple-700 dark:text-purple-300">{formatCurrency(employeeData.salary.housing)}</p>
+                  </div>
+                  <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                    <p className="text-sm font-medium text-orange-600 dark:text-orange-400">بدل مواصلات</p>
+                    <p className="text-xl font-bold text-orange-700 dark:text-orange-300">{formatCurrency(employeeData.salary.transportation)}</p>
+                  </div>
+                </div>
+                
+                <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                      <p className="text-sm font-medium text-red-600 dark:text-red-400">التأمينات</p>
+                      <p className="text-xl font-bold text-red-700 dark:text-red-300">-{formatCurrency(employeeData.salary.insurance)}</p>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">الضرائب</p>
+                      <p className="text-xl font-bold text-gray-700 dark:text-gray-200">-{formatCurrency(employeeData.salary.tax)}</p>
+                    </div>
+                    <div className="bg-red-100 dark:bg-red-900/30 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                        <p className="text-sm font-medium text-red-600 dark:text-red-400">خصومات الساعات</p>
+                      </div>
+                      <p className="text-xl font-bold text-red-700 dark:text-red-300">-{formatCurrency(employeeData.salary.hourlyDeductions)}</p>
+                      <p className="text-xs text-red-500 dark:text-red-400">{totalMissedHours.toFixed(1)} ساعة مفقودة</p>
+                    </div>
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                      <div className="flex items-center gap-2">
+                        <Calculator className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                        <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">معدل الخصم</p>
+                      </div>
+                      <p className="text-xl font-bold text-yellow-700 dark:text-yellow-300">{formatCurrency(employeeData.salary.hourlyRate)}/ساعة</p>
+                      <p className="text-xs text-yellow-500 dark:text-yellow-400">{daysWithDeductions} أيام بخصومات</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 text-white p-4 rounded-lg">
+                    <p className="text-green-100 dark:text-green-200">الراتب الصافي</p>
+                    <p className="text-3xl font-bold">{formatCurrency(employeeData.salary.net)}</p>
+                    <p className="text-sm text-green-200 dark:text-green-300">بعد خصم {formatCurrency(employeeData.salary.hourlyDeductions)} من الراتب الأساسي</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
+                <Calculator className="w-5 h-5 text-red-500 dark:text-red-400" />
+                <span>سجل خصومات الساعات</span>
+              </CardTitle>
+              <CardDescription>إحصائيات الخصومات اليومية</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* إحصائيات سريعة */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrency(employeeData.salary.hourlyDeductions)}</div>
+                    <div className="text-xs text-red-700 dark:text-red-300 font-medium">إجمالي الخصومات</div>
+                  </div>
+                  <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{totalMissedHours.toFixed(1)}</div>
+                    <div className="text-xs text-orange-700 dark:text-orange-300 font-medium">ساعات مفقودة</div>
+                  </div>
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{daysWithDeductions}</div>
+                    <div className="text-xs text-yellow-700 dark:text-yellow-300 font-medium">أيام بخصومات</div>
+                  </div>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(employeeData.salary.hourlyRate)}</div>
+                    <div className="text-xs text-blue-700 dark:text-blue-300 font-medium">خصم/ساعة</div>
+                  </div>
+                </div>
+
+                {/* ملخص نسب الخصومات */}
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">تأثير الخصومات على الراتب</span>
+                    <span className="text-sm text-red-600 dark:text-red-400 font-bold">
+                      -{((employeeData.salary.hourlyDeductions / employeeData.salary.basic) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-red-500 h-2 rounded-full" 
+                      style={{ width: `${Math.min((employeeData.salary.hourlyDeductions / employeeData.salary.basic) * 100, 100)}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    من إجمالي الراتب الأساسي ({formatCurrency(employeeData.salary.basic)})
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* الصف الثاني - سجل الخصومات اليومية */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
-              <DollarSign className="w-5 h-5 text-green-500 dark:text-green-400" />
-              <span>تفاصيل الراتب الشهري</span>
+              <CalendarIcon className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+              <span>سجل الخصومات اليومية</span>
             </CardTitle>
-            <CardDescription>راتب شهر يونيو 2024</CardDescription>
+            <CardDescription>تفاصيل الخصومات لكل يوم عمل</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">الراتب الأساسي</p>
-                  <p className="text-xl font-bold text-green-700 dark:text-green-300">{formatCurrency(employeeData.salary.basic)}</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-right py-3 px-4 font-medium text-gray-900 dark:text-white">التاريخ</th>
+                    <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-white">اليوم</th>
+                    <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-white">المطلوب</th>
+                    <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-white">الفعلي</th>
+                    <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-white">الفرق</th>
+                    <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-white">الخصم</th>
+                    <th className="text-right py-3 px-4 font-medium text-gray-900 dark:text-white">السبب</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employeeData.salary.dailyDeductions.map((day, index) => {
+                    const dayName = new Date(day.date).toLocaleDateString('en-US', { weekday: 'long' })
+                    const hoursDifference = day.requiredHours - day.actualHours
+                    
+                    return (
+                      <tr key={index} className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                        day.deduction > 0 ? 'bg-red-50 dark:bg-red-900/10' : 
+                        day.hasPermission && hoursDifference > 0 ? 'bg-green-50 dark:bg-green-900/10' : ''
+                      }`}>
+                        <td className="py-3 px-4 text-gray-900 dark:text-white">{formatDate(day.date)}</td>
+                        <td className="py-3 px-4 text-center text-gray-600 dark:text-gray-300">{dayName}</td>
+                        <td className="py-3 px-4 text-center font-medium">
+                          {day.requiredHours > 0 ? `${day.requiredHours}س` : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-center font-medium">
+                          {day.actualHours > 0 ? `${day.actualHours}س` : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {hoursDifference > 0 ? (
+                            <span className={`font-medium ${day.hasPermission ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`}>
+                              -{hoursDifference}س
+                            </span>
+                          ) : hoursDifference < 0 ? (
+                            <span className="text-green-600 dark:text-green-400 font-medium">+{Math.abs(hoursDifference)}س</span>
+                          ) : (
+                            <span className="text-gray-500">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {day.deduction > 0 ? (
+                            <span className="text-red-600 dark:text-red-400 font-bold">-{formatCurrency(day.deduction)}</span>
+                          ) : (
+                            <span className="text-gray-500">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
+                          <div className="flex items-center gap-2">
+                            {day.hasPermission && hoursDifference > 0 && (
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                            )}
+                            {day.deduction > 0 && !day.hasPermission && (
+                              <AlertTriangle className="w-4 h-4 text-red-500" />
+                            )}
+                            <span className="text-xs">{day.reason}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* ملخص الجدول */}
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="text-center">
+                <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                  {formatCurrency(employeeData.salary.dailyDeductions.reduce((sum, day) => sum + day.deduction, 0))}
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">البدلات</p>
-                  <p className="text-xl font-bold text-blue-700 dark:text-blue-300">{formatCurrency(employeeData.salary.allowances)}</p>
-                </div>
-                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-purple-600 dark:text-purple-400">بدل سكن</p>
-                  <p className="text-xl font-bold text-purple-700 dark:text-purple-300">{formatCurrency(employeeData.salary.housing)}</p>
-                </div>
-                <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-orange-600 dark:text-orange-400">بدل مواصلات</p>
-                  <p className="text-xl font-bold text-orange-700 dark:text-orange-300">{formatCurrency(employeeData.salary.transportation)}</p>
-                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">إجمالي الخصومات</div>
               </div>
-              
-              <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-                    <p className="text-sm font-medium text-red-600 dark:text-red-400">التأمينات</p>
-                    <p className="text-xl font-bold text-red-700 dark:text-red-300">-{formatCurrency(employeeData.salary.insurance)}</p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">الضرائب</p>
-                    <p className="text-xl font-bold text-gray-700 dark:text-gray-200">-{formatCurrency(employeeData.salary.tax)}</p>
-                  </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  {employeeData.salary.dailyDeductions.filter(day => day.hasPermission && day.requiredHours - day.actualHours > 0).length}
                 </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">أيام بإذن</div>
               </div>
-
-              <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
-                <div className="bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 text-white p-4 rounded-lg">
-                  <p className="text-green-100 dark:text-green-200">الراتب الصافي</p>
-                  <p className="text-3xl font-bold">{formatCurrency(employeeData.salary.net)}</p>
-                  <p className="text-sm text-green-200 dark:text-green-300">آخر صرف: {formatDate(employeeData.salary.lastPayDate)}</p>
+              <div className="text-center">
+                <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                  {((totalWorkingDays - daysWithDeductions) / totalWorkingDays * 100).toFixed(0)}%
                 </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">نسبة الالتزام</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* الصف الثالث - المزايا والحوافز */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
               <Gift className="w-5 h-5 text-purple-500 dark:text-purple-400" />
               <span>المزايا والحوافز</span>
             </CardTitle>
+            <CardDescription>البدلات والمزايا الإضافية</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -368,114 +579,421 @@ const MePage = ({ user }) => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  )
+    )
+  }
 
-  const renderAttendance = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  const renderAttendance = () => {
+    // بيانات حضور المالية (محاكاة بيانات)
+    const monthlyAttendance = [
+      { date: '2024-06-01', day: 'السبت', checkIn: '08:15', checkOut: '17:00', hours: 8.75, status: 'حاضر', overtime: 0.75 },
+      { date: '2024-06-02', day: 'الأحد', checkIn: '08:00', checkOut: '16:30', hours: 8.5, status: 'حاضر', overtime: 0.5 },
+      { date: '2024-06-03', day: 'الاثنين', checkIn: '08:30', checkOut: '17:15', hours: 8.75, status: 'متأخر', overtime: 0.75 },
+      { date: '2024-06-04', day: 'الثلاثاء', checkIn: '08:00', checkOut: '16:45', hours: 8.75, status: 'حاضر', overtime: 0.75 },
+      { date: '2024-06-05', day: 'الأربعاء', checkIn: '08:10', checkOut: '17:00', hours: 8.83, status: 'حاضر', overtime: 0.83 },
+      { date: '2024-06-06', day: 'الخميس', checkIn: '-', checkOut: '-', hours: 0, status: 'غائب', overtime: 0 },
+      { date: '2024-06-07', day: 'الجمعة', checkIn: '-', checkOut: '-', hours: 0, status: 'عطلة', overtime: 0 },
+      { date: '2024-06-08', day: 'السبت', checkIn: '08:05', checkOut: '16:50', hours: 8.75, status: 'حاضر', overtime: 0.75 },
+      { date: '2024-06-09', day: 'الأحد', checkIn: '08:15', checkOut: '-', hours: 7.5, status: 'حاضر', overtime: 0 },
+    ]
+
+    // حساب الإحصائيات
+    const workingDays = monthlyAttendance.filter(day => day.status !== 'عطلة')
+    const presentDays = workingDays.filter(day => day.status === 'حاضر' || day.status === 'متأخر')
+    const absentDays = workingDays.filter(day => day.status === 'غائب')
+    const lateDays = workingDays.filter(day => day.status === 'متأخر')
+    
+    const totalHours = presentDays.reduce((sum, day) => sum + day.hours, 0)
+    const averageHours = totalHours / presentDays.length || 0
+    const totalOvertime = presentDays.reduce((sum, day) => sum + day.overtime, 0)
+    
+    const attendanceRate = Math.round((presentDays.length / workingDays.length) * 100)
+
+    return (
+      <div className="space-y-6">
+        {/* الصف الأول - حضور اليوم وإحصائيات */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
+                <Clock className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+                <span>حضور اليوم</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-8 h-8 text-green-500 dark:text-green-400" />
+                  </div>
+                  <p className="text-lg font-semibold text-green-600 dark:text-green-400">{employeeData.attendance.todayStatus}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-center">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                    <p className="text-sm text-blue-600 dark:text-blue-400">دخول</p>
+                    <p className="font-bold text-blue-700 dark:text-blue-300">{employeeData.attendance.checkInTime}</p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">خروج</p>
+                    <p className="font-bold text-gray-700">{employeeData.attendance.checkOutTime}</p>
+                  </div>
+                </div>
+                
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg text-center">
+                  <p className="text-sm text-purple-600 dark:text-purple-400">ساعات العمل</p>
+                  <p className="font-bold text-purple-700 dark:text-purple-300">{employeeData.attendance.totalHours} ساعة</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
+                <BarChart3 className="w-5 h-5 text-green-500" />
+                <span>إحصائيات الشهر</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{presentDays.length}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">أيام حضور</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">{absentDays.length}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">أيام غياب</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{lateDays.length}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">أيام تأخير</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{workingDays.length}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">أيام العمل</div>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 text-white p-3 rounded-lg text-center">
+                  <p className="text-green-100 dark:text-green-200">نسبة الحضور</p>
+                  <p className="text-2xl font-bold">{attendanceRate}%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
+                <Activity className="w-5 h-5 text-purple-500 dark:text-purple-400" />
+                <span>معدل الساعات اليومي</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Clock3 className="w-8 h-8 text-purple-500 dark:text-purple-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{averageHours.toFixed(1)}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">ساعة يومياً</p>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-center">
+                    <p className="text-sm text-blue-600 dark:text-blue-400">إجمالي الساعات</p>
+                    <p className="font-bold text-blue-700 dark:text-blue-300">{totalHours.toFixed(1)} ساعة</p>
+                  </div>
+                  <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg text-center">
+                    <p className="text-sm text-orange-600 dark:text-orange-400">ساعات إضافية</p>
+                    <p className="font-bold text-orange-700 dark:text-orange-300">{totalOvertime.toFixed(1)} ساعة</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* الصف الثاني - سجل الحضور الشهري */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Clock className="w-5 h-5 text-blue-500 dark:text-blue-400" />
-              <span>حضور اليوم</span>
+              <Calendar className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+              <span>سجل الحضور الشهري - يونيو 2024</span>
             </CardTitle>
+            <CardDescription>تفاصيل الحضور والانصراف يومياً</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <CheckCircle className="w-8 h-8 text-green-500 dark:text-green-400" />
+              {/* مفاتيح الألوان */}
+              <div className="flex flex-wrap gap-4 text-sm mb-4">
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-gray-600 dark:text-gray-300">حاضر</span>
                 </div>
-                <p className="text-lg font-semibold text-green-600 dark:text-green-400">{employeeData.attendance.todayStatus}</p>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3 text-center">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-                  <p className="text-sm text-blue-600 dark:text-blue-400">دخول</p>
-                  <p className="font-bold text-blue-700 dark:text-blue-300">{employeeData.attendance.checkInTime}</p>
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <span className="text-gray-600 dark:text-gray-300">متأخر</span>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                  <p className="text-sm text-gray-600 dark:text-gray-300">خروج</p>
-                  <p className="font-bold text-gray-700">{employeeData.attendance.checkOutTime}</p>
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <span className="text-gray-600 dark:text-gray-300">غائب</span>
+                </div>
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                  <span className="text-gray-600 dark:text-gray-300">عطلة</span>
                 </div>
               </div>
-              
-              <div className="bg-purple-50 p-3 rounded-lg text-center">
-                <p className="text-sm text-purple-600">ساعات العمل</p>
-                <p className="font-bold text-purple-700">{employeeData.attendance.totalHours} ساعة</p>
+
+              {/* جدول الحضور */}
+              <div className="overflow-x-auto">
+                <div className="min-w-full">
+                  <div className="grid grid-cols-7 gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                    <div className="text-center p-2">التاريخ</div>
+                    <div className="text-center p-2">اليوم</div>
+                    <div className="text-center p-2">دخول</div>
+                    <div className="text-center p-2">خروج</div>
+                    <div className="text-center p-2">الساعات</div>
+                    <div className="text-center p-2">إضافي</div>
+                    <div className="text-center p-2">الحالة</div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {monthlyAttendance.map((day, index) => {
+                      let statusColor = 'bg-gray-100 dark:bg-gray-700'
+                      let statusTextColor = 'text-gray-600 dark:text-gray-300'
+                      
+                      if (day.status === 'حاضر') {
+                        statusColor = 'bg-green-50 dark:bg-green-900/20'
+                        statusTextColor = 'text-green-600 dark:text-green-400'
+                      } else if (day.status === 'متأخر') {
+                        statusColor = 'bg-yellow-50 dark:bg-yellow-900/20'
+                        statusTextColor = 'text-yellow-600 dark:text-yellow-400'
+                      } else if (day.status === 'غائب') {
+                        statusColor = 'bg-red-50 dark:bg-red-900/20'
+                        statusTextColor = 'text-red-600 dark:text-red-400'
+                      }
+
+                      return (
+                        <div key={index} className={`grid grid-cols-7 gap-2 p-3 rounded-lg border ${statusColor} border-gray-200 dark:border-gray-600`}>
+                          <div className="text-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {new Date(day.date).getDate().toString().padStart(2, '0')}
+                          </div>
+                          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                            {day.day}
+                          </div>
+                          <div className="text-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {day.checkIn}
+                          </div>
+                          <div className="text-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {day.checkOut}
+                          </div>
+                          <div className="text-center text-sm font-bold text-blue-600 dark:text-blue-400">
+                            {day.hours > 0 ? `${day.hours.toFixed(1)}h` : '-'}
+                          </div>
+                          <div className="text-center text-sm font-medium text-orange-600 dark:text-orange-400">
+                            {day.overtime > 0 ? `+${day.overtime.toFixed(1)}h` : '-'}
+                          </div>
+                          <div className={`text-center text-sm font-medium ${statusTextColor}`}>
+                            <div className="flex items-center justify-center space-x-1 rtl:space-x-reverse">
+                              <div className={`w-2 h-2 rounded-full ${
+                                day.status === 'حاضر' ? 'bg-green-500' :
+                                day.status === 'متأخر' ? 'bg-yellow-500' :
+                                day.status === 'غائب' ? 'bg-red-500' : 'bg-gray-400'
+                              }`}></div>
+                              <span>{day.status}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
+
+                             {/* ملخص إحصائي */}
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                 <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                   <div className="text-sm text-blue-600 dark:text-blue-400">أعلى ساعات يومية</div>
+                   <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
+                     {Math.max(...presentDays.map(d => d.hours)).toFixed(1)}h
+                   </div>
+                 </div>
+                 <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                   <div className="text-sm text-green-600 dark:text-green-400">متوسط الدخول</div>
+                   <div className="text-lg font-bold text-green-700 dark:text-green-300">08:12</div>
+                 </div>
+                 <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                   <div className="text-sm text-purple-600 dark:text-purple-400">متوسط الخروج</div>
+                   <div className="text-lg font-bold text-purple-700 dark:text-purple-300">16:52</div>
+                 </div>
+                 <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                   <div className="text-sm text-orange-600 dark:text-orange-400">كفاءة الوقت</div>
+                   <div className="text-lg font-bold text-orange-700 dark:text-orange-300">ممتازة</div>
+                 </div>
+               </div>
+
+               {/* الرسم البياني لساعات العمل */}
+               <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                   <BarChart3 className="w-5 h-5 text-blue-500 mr-2" />
+                   تطور ساعات العمل اليومية
+                 </h4>
+                 <div className="h-64">
+                   <ResponsiveContainer width="100%" height="100%">
+                     <BarChart data={monthlyAttendance.filter(day => day.status !== 'عطلة')}>
+                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                       <XAxis 
+                         dataKey="date" 
+                         tickFormatter={(value) => new Date(value).getDate().toString()}
+                         className="text-xs"
+                       />
+                       <YAxis className="text-xs" />
+                       <Tooltip 
+                         labelFormatter={(value) => `${new Date(value).getDate()} يونيو`}
+                         formatter={(value, name) => [
+                           name === 'hours' ? `${value} ساعة` : `${value} ساعة إضافية`,
+                           name === 'hours' ? 'ساعات العمل' : 'الساعات الإضافية'
+                         ]}
+                         contentStyle={{
+                           backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                           border: '1px solid #e5e5e5',
+                           borderRadius: '8px',
+                           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                         }}
+                       />
+                       <Legend />
+                       <Bar 
+                         dataKey="hours" 
+                         fill="#3b82f6" 
+                         name="ساعات العمل"
+                         radius={[4, 4, 0, 0]}
+                       />
+                       <Bar 
+                         dataKey="overtime" 
+                         fill="#f59e0b" 
+                         name="ساعات إضافية"
+                         radius={[4, 4, 0, 0]}
+                       />
+                     </BarChart>
+                   </ResponsiveContainer>
+                 </div>
+               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
-              <BarChart3 className="w-5 h-5 text-green-500" />
-              <span>إحصائيات الشهر</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{employeeData.attendance.presentDays}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">أيام حضور</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{employeeData.attendance.absences}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">أيام غياب</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{employeeData.attendance.lateDays}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">أيام تأخير</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{employeeData.attendance.thisMonthDays}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">أيام العمل</div>
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 text-white p-3 rounded-lg text-center">
-                <p className="text-green-100 dark:text-green-200">نسبة الحضور</p>
-                <p className="text-2xl font-bold">{employeeData.performance.attendance}%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                 {/* الصف الثالث - تحليل الأداء والاتجاهات */}
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+           <Card>
+             <CardHeader>
+               <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
+                 <TrendingUp className="w-5 h-5 text-green-500 dark:text-green-400" />
+                 <span>اتجاه معدل الحضور الأسبوعي</span>
+               </CardTitle>
+               <CardDescription>متوسط ساعات العمل لكل أسبوع</CardDescription>
+             </CardHeader>
+             <CardContent>
+               <div className="h-48">
+                 <ResponsiveContainer width="100%" height="100%">
+                   <LineChart data={[
+                     { week: 'الأسبوع 1', avgHours: 8.2, attendance: 95 },
+                     { week: 'الأسبوع 2', avgHours: 8.5, attendance: 98 },
+                     { week: 'الأسبوع 3', avgHours: 8.3, attendance: 92 },
+                     { week: 'الأسبوع 4', avgHours: 8.4, attendance: 96 }
+                   ]}>
+                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                     <XAxis dataKey="week" className="text-xs" />
+                     <YAxis className="text-xs" />
+                     <Tooltip 
+                       formatter={(value, name) => [
+                         name === 'avgHours' ? `${value} ساعة` : `${value}%`,
+                         name === 'avgHours' ? 'متوسط الساعات' : 'نسبة الحضور'
+                       ]}
+                       contentStyle={{
+                         backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                         border: '1px solid #e5e5e5',
+                         borderRadius: '8px',
+                         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                       }}
+                     />
+                     <Line 
+                       type="monotone" 
+                       dataKey="avgHours" 
+                       stroke="#10b981" 
+                       strokeWidth={3}
+                       dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                       name="متوسط الساعات"
+                     />
+                     <Line 
+                       type="monotone" 
+                       dataKey="attendance" 
+                       stroke="#3b82f6" 
+                       strokeWidth={2}
+                       strokeDasharray="5 5"
+                       dot={{ fill: '#3b82f6', strokeWidth: 2, r: 3 }}
+                       name="نسبة الحضور"
+                     />
+                   </LineChart>
+                 </ResponsiveContainer>
+               </div>
+             </CardContent>
+           </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Activity className="w-5 h-5 text-orange-500 dark:text-orange-400" />
-              <span>إجراءات سريعة</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <Button className="w-full justify-start" variant="outline">
-                <Clock3 className="w-4 h-4 ml-2" />
-                تسجيل خروج
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <Calendar className="w-4 h-4 ml-2" />
-                طلب إجازة
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <FileText className="w-4 h-4 ml-2" />
-                تقرير الحضور
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <Edit3 className="w-4 h-4 ml-2" />
-                تعديل البيانات
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+           <Card>
+             <CardHeader>
+               <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
+                 <Activity className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+                 <span>إجراءات سريعة</span>
+               </CardTitle>
+             </CardHeader>
+             <CardContent>
+               <div className="space-y-4">
+                 <div className="grid grid-cols-2 gap-3">
+                   <Button className="justify-start" variant="outline">
+                     <Clock3 className="w-4 h-4 ml-2" />
+                     تسجيل خروج
+                   </Button>
+                   <Button className="justify-start" variant="outline">
+                     <Calendar className="w-4 h-4 ml-2" />
+                     طلب إجازة
+                   </Button>
+                   <Button className="justify-start" variant="outline">
+                     <FileText className="w-4 h-4 ml-2" />
+                     تقرير الحضور
+                   </Button>
+                   <Button className="justify-start" variant="outline">
+                     <Download className="w-4 h-4 ml-2" />
+                     تصدير البيانات
+                   </Button>
+                 </div>
+                 
+                 {/* إحصائيات سريعة */}
+                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">إحصائيات سريعة</h4>
+                   <div className="space-y-2">
+                     <div className="flex justify-between items-center text-sm">
+                       <span className="text-gray-600 dark:text-gray-400">أفضل يوم هذا الشهر:</span>
+                       <span className="font-medium text-green-600 dark:text-green-400">الأربعاء (8.8h)</span>
+                     </div>
+                     <div className="flex justify-between items-center text-sm">
+                       <span className="text-gray-600 dark:text-gray-400">النمط الأسبوعي:</span>
+                       <span className="font-medium text-blue-600 dark:text-blue-400">متحسن</span>
+                     </div>
+                     <div className="flex justify-between items-center text-sm">
+                       <span className="text-gray-600 dark:text-gray-400">التقييم:</span>
+                       <span className="font-medium text-purple-600 dark:text-purple-400">موظف مثالي</span>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   const renderPerformance = () => (
     <div className="space-y-6">

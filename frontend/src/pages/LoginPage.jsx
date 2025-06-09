@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Eye, EyeOff, User, Shield, Mail, Lock, Sun, Moon } from 'lucide-react'
@@ -13,6 +14,7 @@ const LoginPage = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const { isDarkMode, toggleTheme } = useTheme()
+  const navigate = useNavigate()
 
   // بيانات المستخدمين المُعرفة مسبقاً
   const users = [
@@ -257,6 +259,22 @@ const LoginPage = ({ onLogin }) => {
                 <span className="font-medium text-green-600 dark:text-green-400">الموظف:</span>
                 <span className="text-gray-600 dark:text-gray-300">employee@hr.com / emp123</span>
               </div>
+            </CardContent>
+          </Card>
+
+                    {/* إنشاء حساب جديد */}
+          <Card className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 backdrop-blur-sm border-green-200/50 dark:border-green-700/50">
+            <CardContent className="pt-6 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                ليس لديك حساب؟
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/signup')}
+                className="bg-gradient-to-r from-green-500/10 to-blue-500/10 hover:from-green-500/20 hover:to-blue-500/20 border-green-300 dark:border-green-600 text-green-700 dark:text-green-400"
+              >
+                إنشاء حساب جديد
+              </Button>
             </CardContent>
           </Card>
         </div>

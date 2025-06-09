@@ -1,29 +1,29 @@
-// Arabic formatters utility functions
+// Formatters utility functions with English numbers - Egyptian Locale
 
 export const formatArabicNumber = (number) => {
-  const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-  return number.toString().replace(/[0-9]/g, (digit) => arabicNumbers[parseInt(digit)]);
+  // تم تعطيل تحويل الأرقام العربية - سيتم استخدام الأرقام الإنجليزية
+  return number.toString();
 };
 
 export const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('ar-EG', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'EGP',
+    currency: 'EGP', // الجنيه المصري
     minimumFractionDigits: 0,
     maximumFractionDigits: 2
-  }).format(amount);
+  }).format(amount).replace('EGP', 'ج.م'); // استبدال رمز العملة بالنص العربي المصري
 };
 
 export const formatDate = (date) => {
-  return new Intl.DateTimeFormat('ar-EG', {
+  return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+    month: '2-digit',
+    day: '2-digit'
   }).format(new Date(date));
 };
 
 export const formatShortDate = (date) => {
-  return new Intl.DateTimeFormat('ar-EG', {
+  return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
@@ -31,11 +31,16 @@ export const formatShortDate = (date) => {
 };
 
 export const formatPercentage = (value) => {
-  return new Intl.NumberFormat('ar-EG', {
+  return new Intl.NumberFormat('en-US', {
     style: 'percent',
     minimumFractionDigits: 1,
     maximumFractionDigits: 1
   }).format(value / 100);
+};
+
+// دالة لتنسيق الأرقام العادية بالأرقام الإنجليزية
+export const formatNumber = (number) => {
+  return new Intl.NumberFormat('en-US').format(number);
 };
 
 export const searchArabicText = (text, searchTerm) => {

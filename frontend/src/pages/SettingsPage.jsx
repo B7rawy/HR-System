@@ -47,10 +47,10 @@ const SettingsPage = () => {
   const [personalInfo, setPersonalInfo] = useState({
     fullName: 'أحمد محمد علي',
     email: 'ahmed@company.com',
-    phone: '+966501234567',
+    phone: '+201012345678',
     department: 'التطوير',
     position: 'مطور برمجيات رئيسي',
-    location: 'الرياض'
+    location: 'القاهرة'
   })
   
   const [securitySettings, setSecuritySettings] = useState({
@@ -160,7 +160,6 @@ const SettingsPage = () => {
                 <option value="EGP">جنيه مصري (EGP)</option>
                 <option value="USD">دولار أمريكي (USD)</option>
                 <option value="EUR">يورو (EUR)</option>
-                <option value="SAR">ريال سعودي (SAR)</option>
               </select>
             </div>
 

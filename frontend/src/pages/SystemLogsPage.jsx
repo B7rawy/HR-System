@@ -138,7 +138,7 @@ const SystemLogsPage = () => {
   };
 
   const formatDate = (timestamp) => {
-    return new Date(timestamp).toLocaleString('ar-EG', {
+    return new Date(timestamp).toLocaleString('en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -185,7 +185,7 @@ const SystemLogsPage = () => {
     return (
       <div className="space-y-1">
         <div className={`font-bold text-sm ${type === 'دخل' ? 'text-green-600' : 'text-red-600'}`}>
-          {type === 'دخل' ? '+' : '-'} {amount.toLocaleString()} ج.م
+          {type === 'دخل' ? '+' : '-'} {amount.toLocaleString('en-US')} ج.م
         </div>
         <div className="text-xs text-gray-600">
           {type} - {category}
@@ -578,7 +578,7 @@ const SystemLogsPage = () => {
                       <div>
                         <label className="font-medium text-blue-700">المبلغ:</label>
                         <p className={`text-lg font-bold ${selectedLog.details.data.type === 'دخل' ? 'text-green-600' : 'text-red-600'}`}>
-                          {selectedLog.details.data.type === 'دخل' ? '+' : '-'} {selectedLog.details.data.amount?.toLocaleString()} ج.م
+                          {selectedLog.details.data.type === 'دخل' ? '+' : '-'} {selectedLog.details.data.amount?.toLocaleString('en-US')} ج.م
                         </p>
                       </div>
                       <div>

@@ -689,7 +689,7 @@ const EmployeesListPage = () => {
                 <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
                   <div className="flex items-center space-x-1 space-x-reverse">
                     <TrendingUp className="h-3 w-3" />
-                    <span>{employee.salary ? `${employee.salary.toLocaleString()} ج.م` : 'غير محدد'}</span>
+                    <span>{employee.salary ? `${employee.salary.toLocaleString('en-US')} ج.م` : 'غير محدد'}</span>
                   </div>
                   <div className="flex items-center space-x-1 space-x-reverse">
                     <Briefcase className="h-3 w-3" />
