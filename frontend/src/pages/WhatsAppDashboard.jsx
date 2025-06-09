@@ -3,6 +3,35 @@ import WhatsAppService from '../services/WhatsAppService';
 import { formatEgyptianPhone, EGYPTIAN_TEST_NUMBERS } from '../utils/phoneFormatter';
 import './WhatsAppDashboard.css';
 
+// دالة مسح بيانات WhatsApp Web
+const clearWhatsAppData = () => {
+    // مسح Local Storage
+    Object.keys(localStorage).forEach(key => {
+        if (key.includes('whatsapp') || key.includes('wa-') || key.includes('waweb')) {
+            localStorage.removeItem(key)
+        }
+    })
+    
+    // مسح Session Storage
+    Object.keys(sessionStorage).forEach(key => {
+        if (key.includes('whatsapp') || key.includes('wa-') || key.includes('waweb')) {
+            sessionStorage.removeItem(key)
+        }
+    })
+    
+    // مسح IndexedDB إذا كان متاح
+    if ('indexedDB' in window) {
+        try {
+            indexedDB.deleteDatabase('WhatsAppWeb')
+            indexedDB.deleteDatabase('waweb')
+        } catch (error) {
+            console.log('تعذر مسح IndexedDB:', error)
+        }
+    }
+    
+    alert('تم مسح بيانات WhatsApp Web. أعد تحميل الصفحة وحاول مرة أخرى.')
+}
+
 const WhatsAppDashboard = () => {
     // استخدام بيانات كريم من ملف تنسيق الأرقام المصرية
     const TEST_CONTACT = EGYPTIAN_TEST_NUMBERS.KARIM_BAHRAWY;

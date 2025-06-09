@@ -437,24 +437,94 @@ const WhatsAppConnectionPage = () => {
                         </button>
                     )}
 
-                    {connectionState.status === 'error' && connectionState.retryCount < maxRetries && (
-                        <button 
-                            className="btn btn-warning btn-large"
-                            onClick={handleRetry}
-                            disabled={connectionState.isLoading}
-                        >
-                            🔄 إعادة المحاولة ({connectionState.retryCount}/{maxRetries})
-                        </button>
+                    {connectionState.status === 'error' && (
+                        <div className="button-group">
+                            {connectionState.retryCount < maxRetries && (
+                                <button 
+                                    className="btn btn-warning btn-large"
+                                    onClick={handleRetry}
+                                    disabled={connectionState.isLoading}
+                                >
+                                    🔄 إعادة المحاولة ({connectionState.retryCount}/{maxRetries})
+                                </button>
+                            )}
+                            <button 
+                                className="btn btn-danger"
+                                onClick={() => {
+                                    // مسح بيانات WhatsApp Web
+                                    Object.keys(localStorage).forEach(key => {
+                                        if (key.includes('whatsapp') || key.includes('wa-') || key.includes('waweb')) {
+                                            localStorage.removeItem(key)
+                                        }
+                                    })
+                                    
+                                    Object.keys(sessionStorage).forEach(key => {
+                                        if (key.includes('whatsapp') || key.includes('wa-') || key.includes('waweb')) {
+                                            sessionStorage.removeItem(key)
+                                        }
+                                    })
+                                    
+                                    if ('indexedDB' in window) {
+                                        try {
+                                            indexedDB.deleteDatabase('WhatsAppWeb')
+                                            indexedDB.deleteDatabase('waweb')
+                                        } catch (error) {
+                                            console.log('تعذر مسح IndexedDB:', error)
+                                        }
+                                    }
+                                    
+                                    alert('تم مسح بيانات WhatsApp Web. سيتم إعادة تحميل الصفحة.')
+                                    window.location.reload()
+                                }}
+                                title="مسح بيانات WhatsApp وإعادة تعيين الاتصال"
+                            >
+                                🗑️ مسح البيانات وإعادة المحاولة
+                            </button>
+                        </div>
                     )}
 
                     {connectionState.status === 'qr_ready' && (
-                        <button 
-                            className="btn btn-secondary"
-                            onClick={() => startQRPolling()}
-                            disabled={connectionState.isLoading}
-                        >
-                            🔄 تحديث الرمز
-                        </button>
+                        <div className="button-group">
+                            <button 
+                                className="btn btn-secondary"
+                                onClick={() => startQRPolling()}
+                                disabled={connectionState.isLoading}
+                            >
+                                🔄 تحديث الرمز
+                            </button>
+                            <button 
+                                className="btn btn-danger"
+                                onClick={() => {
+                                    // مسح بيانات WhatsApp Web
+                                    Object.keys(localStorage).forEach(key => {
+                                        if (key.includes('whatsapp') || key.includes('wa-') || key.includes('waweb')) {
+                                            localStorage.removeItem(key)
+                                        }
+                                    })
+                                    
+                                    Object.keys(sessionStorage).forEach(key => {
+                                        if (key.includes('whatsapp') || key.includes('wa-') || key.includes('waweb')) {
+                                            sessionStorage.removeItem(key)
+                                        }
+                                    })
+                                    
+                                    if ('indexedDB' in window) {
+                                        try {
+                                            indexedDB.deleteDatabase('WhatsAppWeb')
+                                            indexedDB.deleteDatabase('waweb')
+                                        } catch (error) {
+                                            console.log('تعذر مسح IndexedDB:', error)
+                                        }
+                                    }
+                                    
+                                    alert('تم مسح بيانات WhatsApp Web. أعد تحميل الصفحة وحاول مرة أخرى.')
+                                    window.location.reload()
+                                }}
+                                title="مسح بيانات WhatsApp وإعادة تعيين الاتصال"
+                            >
+                                🗑️ إعادة تعيين
+                            </button>
+                        </div>
                     )}
                 </div>
 
