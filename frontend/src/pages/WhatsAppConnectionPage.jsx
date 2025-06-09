@@ -29,6 +29,43 @@ const WhatsAppConnectionPage = () => {
 
     // تنظيف الموارد عند مغادرة الصفحة
     useEffect(() => {
+        // محاولة استعادة QR Code من localStorage عند تحميل الصفحة
+        const restoreQRFromStorage = () => {
+            try {
+                const savedQR = localStorage.getItem('lastQRCode');
+                const savedTimestamp = localStorage.getItem('lastQRTimestamp');
+                
+                if (savedQR && savedTimestamp) {
+                    const qrAge = Date.now() - new Date(savedTimestamp).getTime();
+                    const maxAge = 5 * 60 * 1000; // 5 دقائق
+                    
+                    if (qrAge < maxAge) {
+                        console.log('🔄 استعادة QR Code من localStorage');
+                        setConnectionState(prev => ({
+                            ...prev,
+                            qrCode: savedQR,
+                            status: 'qr_ready',
+                            errorMessage: 'QR مستعاد من الذاكرة - امسحه إذا كان صالح'
+                        }));
+                        
+                        setQrMetadata(prev => ({
+                            ...prev,
+                            generated: true,
+                            timestamp: new Date(savedTimestamp)
+                        }));
+                    } else {
+                        console.log('⏰ QR المحفوظ انتهت صلاحيته');
+                        localStorage.removeItem('lastQRCode');
+                        localStorage.removeItem('lastQRTimestamp');
+                    }
+                }
+            } catch (error) {
+                console.log('⚠️ فشل استعادة QR من localStorage:', error.message);
+            }
+        };
+        
+        restoreQRFromStorage();
+        
         return () => {
             clearAllTimers();
             closeEventSource();
@@ -165,10 +202,19 @@ const WhatsAppConnectionPage = () => {
                     return true; // وقف polling
                 } else {
                     console.log('⏳ QR Code ليس جاهزاً بعد...');
+                    // لا تغير الحالة إذا كان QR موجود بالفعل
+                    if (!connectionState.qrCode) {
+                        setConnectionState(prev => ({
+                            ...prev,
+                            status: 'waiting_qr',
+                            errorMessage: 'انتظار QR Code...'
+                        }));
+                    }
                     return false; // استمرار polling
                 }
             } catch (error) {
                 console.log('🔄 خطأ في polling QR Code:', error.message);
+                // لا تمسح QR الموجود عند حدوث خطأ في API
                 return false; // استمرار polling
             }
         };
@@ -186,25 +232,44 @@ const WhatsAppConnectionPage = () => {
             }
         }, pollingInterval);
 
-        // timeout للـ QR Code
+        // timeout للـ QR Code - زيادة المدة وتحسين المعالجة
         connectionTimeoutRef.current = setTimeout(() => {
-            console.log('⏰ timeout للـ QR Code');
-            clearInterval(qrPollingRef.current);
-            qrPollingRef.current = null;
+            console.log('⏰ timeout للـ QR Code - لكن سنبقي على QR الحالي');
+            // لا نوقف polling تماماً، فقط نقلل تكراره
+            if (qrPollingRef.current) {
+                clearInterval(qrPollingRef.current);
+                qrPollingRef.current = null;
+                
+                // إعادة تشغيل polling بتكرار أقل
+                setTimeout(() => {
+                    if (!connectionState.qrCode) {
+                        startQRPolling();
+                    }
+                }, 5000);
+            }
             handleQRTimeout();
-        }, qrTimeout);
+        }, qrTimeout * 2); // مضاعفة مدة الـ timeout
     };
 
     // معالجة استلام QR Code
     const handleQRCodeReceived = (qrCode) => {
         console.log('🎯 معالجة QR Code المستلم');
         
+        // حفظ QR في localStorage كنسخة احتياطية
+        try {
+            localStorage.setItem('lastQRCode', qrCode);
+            localStorage.setItem('lastQRTimestamp', new Date().toISOString());
+            console.log('💾 تم حفظ QR Code في localStorage');
+        } catch (error) {
+            console.log('⚠️ فشل حفظ QR Code:', error.message);
+        }
+        
         setConnectionState(prev => ({
             ...prev,
             status: 'qr_ready',
             qrCode: qrCode,
             isLoading: false,
-            errorMessage: ''
+            errorMessage: 'QR Code جاهز - امسحه بسرعة!'
         }));
 
         setQrMetadata(prev => ({
@@ -214,13 +279,22 @@ const WhatsAppConnectionPage = () => {
             attempts: prev.attempts + 1
         }));
 
-        // مسح timeout polling لأن QR أصبح جاهزاً
+        // اترك polling يعمل بتكرار أقل للحصول على QR جديد عند الحاجة
         if (qrPollingRef.current) {
             clearInterval(qrPollingRef.current);
-            qrPollingRef.current = null;
+            
+            // إعادة تشغيل polling بتكرار أبطأ
+            qrPollingRef.current = setInterval(async () => {
+                console.log('🔍 فحص دوري للـ QR Code الجديد...');
+                const result = await pollQRCode();
+                if (result) {
+                    clearInterval(qrPollingRef.current);
+                    qrPollingRef.current = null;
+                }
+            }, 15000); // كل 15 ثانية بدلاً من 3
         }
 
-        console.log('✅ QR Code جاهز للعرض');
+        console.log('✅ QR Code جاهز للعرض ومحفوظ بأمان');
     };
 
     // معالجة نجاح الاتصال
@@ -243,38 +317,47 @@ const WhatsAppConnectionPage = () => {
 
     // معالجة قطع الاتصال
     const handleDisconnection = () => {
+        console.log('🔌 معالجة قطع الاتصال - سنحافظ على QR إذا كان متاح');
+        
+        // لا نمسح QR Code فوراً، قد يكون قطع اتصال مؤقت
         setConnectionState(prev => ({
             ...prev,
             status: 'disconnected',
-            qrCode: null,
-            isLoading: false
+            // اترك qrCode كما هو إذا كان موجود
+            qrCode: prev.qrCode, 
+            isLoading: false,
+            errorMessage: 'تم قطع الاتصال - امسح QR إذا كان متاح'
         }));
 
-        setQrMetadata({
-            generated: false,
-            timestamp: null,
-            attempts: 0,
-            autoRefreshCount: 0
-        });
+        // لا نعيد تعيين metadata فوراً
+        console.log('📝 الحفاظ على QR metadata للاستخدام المتواصل');
     };
 
     // معالجة timeout للـ QR Code
     const handleQRTimeout = () => {
         console.log('⏰ انتهت مهلة QR Code');
         
-        if (qrMetadata.autoRefreshCount < 3) {
-            console.log('🔄 إعادة تحديث QR Code تلقائياً...');
+        // فقط أظهر رسالة وانتظر QR جديد، لا تمسح QR الحالي
+        if (qrMetadata.autoRefreshCount < 5) {
+            console.log('🔄 انتظار QR Code جديد تلقائياً...');
             setQrMetadata(prev => ({
                 ...prev,
                 autoRefreshCount: prev.autoRefreshCount + 1
             }));
             
-            // إعادة محاولة الحصول على QR جديد
+            // لا تمسح QR الحالي، فقط انتظر QR جديد
+            setConnectionState(prev => ({
+                ...prev,
+                status: 'waiting_qr',
+                errorMessage: `انتظار QR جديد... (${qrMetadata.autoRefreshCount + 1}/5)`
+            }));
+            
+            // إعادة محاولة الحصول على QR جديد دون مسح القديم
             setTimeout(() => {
                 startQRPolling();
-            }, 1000);
+            }, 2000);
         } else {
-            handleConnectionError('انتهت صلاحية رمز QR. يرجى المحاولة مرة أخرى.');
+            handleConnectionError('انتهت صلاحية رمز QR عدة مرات. يرجى إعادة المحاولة.');
         }
     };
 
@@ -486,6 +569,19 @@ const WhatsAppConnectionPage = () => {
                     {connectionState.status === 'qr_ready' && (
                         <div className="button-group">
                             <button 
+                                className="btn btn-success"
+                                onClick={() => {
+                                    console.log('💾 الحفاظ على QR Code يدوياً');
+                                    localStorage.setItem('lastQRCode', connectionState.qrCode);
+                                    localStorage.setItem('lastQRTimestamp', new Date().toISOString());
+                                    localStorage.setItem('qr_keep_manual', 'true');
+                                    alert('تم حفظ QR Code! سيبقى متاح حتى لو اختفى.');
+                                }}
+                                title="حفظ QR Code للاحتفاظ به"
+                            >
+                                💾 حفظ QR
+                            </button>
+                            <button 
                                 className="btn btn-secondary"
                                 onClick={() => startQRPolling()}
                                 disabled={connectionState.isLoading}
@@ -497,7 +593,7 @@ const WhatsAppConnectionPage = () => {
                                 onClick={() => {
                                     // مسح بيانات WhatsApp Web
                                     Object.keys(localStorage).forEach(key => {
-                                        if (key.includes('whatsapp') || key.includes('wa-') || key.includes('waweb')) {
+                                        if (key.includes('whatsapp') || key.includes('wa-') || key.includes('waweb') || key.includes('lastQR')) {
                                             localStorage.removeItem(key)
                                         }
                                     })
