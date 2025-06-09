@@ -255,31 +255,63 @@ class WhatsAppManager {
 
     // Setup event listeners
     setupEventListeners() {
-        // QR Code generation
+        // QR Code generation with enhanced error handling
         this.client.on('qr', async (qr) => {
-            this.connectionStatus = 'connecting';
-            
-            // Enhanced QR validation
-            if (!qr || qr.length < 50) {
-                console.error('❌ Invalid QR code received:', qr ? `Length: ${qr.length}` : 'Empty QR');
-                return;
-            }
-            
-            await this.generateQRCode(qr);
-            console.log('📱 QR Code generated for WhatsApp authentication');
-            console.log('📏 QR string length:', qr.length);
-            console.log('⏰ QR Code will remain active until scan or timeout');
-            
-            this.saveLog({
-                type: 'qr_generated',
-                status: 'info',
-                message: `QR Code generated for authentication (length: ${qr.length})`
-            });
+            try {
+                this.connectionStatus = 'connecting';
+                
+                // Enhanced QR validation
+                if (!qr || qr.length < 50) {
+                    console.error('❌ Invalid QR code received:', qr ? `Length: ${qr.length}` : 'Empty QR');
+                    this.emit('qr_error', { error: 'Invalid QR code received' });
+                    return;
+                }
+                
+                console.log('📱 New QR Code received for WhatsApp authentication');
+                console.log('📏 QR string length:', qr.length);
+                console.log('🔤 QR starts with:', qr.substring(0, 30) + '...');
+                
+                // Generate QR with multiple fallback methods
+                await this.generateQRCode(qr);
+                
+                console.log('✅ QR Code successfully generated and ready for scan');
+                console.log('⏰ QR Code will remain active until scan or timeout (usually 30 seconds)');
+                
+                this.saveLog({
+                    type: 'qr_generated',
+                    status: 'info',
+                    message: `QR Code generated for authentication (length: ${qr.length})`,
+                    timestamp: new Date().toISOString()
+                });
 
-            this.emit('qr', { qrCode: this.qrCode, status: this.connectionStatus });
-            
-            // Don't clear QR code immediately - let it persist until connection or new QR
-            console.log('🔄 QR Code will auto-refresh when WhatsApp generates a new one');
+                // Emit QR with additional metadata for better debugging
+                this.emit('qr', { 
+                    qrCode: this.qrCode, 
+                    status: this.connectionStatus,
+                    qrLength: qr.length,
+                    timestamp: new Date().toISOString(),
+                    method: 'enhanced_generation'
+                });
+                
+                console.log('🔄 QR Code will auto-refresh when WhatsApp generates a new one');
+                console.log('📲 Please scan quickly as QR codes expire every 30 seconds');
+                
+            } catch (error) {
+                console.error('❌ Critical error in QR generation:', error);
+                this.connectionStatus = 'error';
+                
+                this.saveLog({
+                    type: 'qr_generation_critical_error',
+                    status: 'error',
+                    message: error.message,
+                    timestamp: new Date().toISOString()
+                });
+                
+                this.emit('qr_error', { 
+                    error: error.message,
+                    status: this.connectionStatus
+                });
+            }
         });
 
         // Client ready
@@ -458,10 +490,10 @@ class WhatsAppManager {
         }
     }
 
-    // Generate QR Code
+    // Generate QR Code with multiple fallback methods
     async generateQRCode(qr) {
         try {
-            console.log('🔄 Starting QR Code generation...');
+            console.log('🔄 Starting QR Code generation with enhanced methods...');
             console.log('📏 QR string length:', qr.length);
             console.log('🔤 QR string preview:', qr.substring(0, 50) + '...');
             
@@ -470,45 +502,86 @@ class WhatsAppManager {
                 throw new Error(`Invalid QR string: ${qr ? `Length ${qr.length}` : 'Empty'}`);
             }
             
-            this.qrCode = await QRCode.toDataURL(qr, {
-                width: 300,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                },
-                errorCorrectionLevel: 'M'
-            });
+            // Method 1: Try with enhanced QRCode library options
+            try {
+                console.log('📱 Method 1: Enhanced QRCode library...');
+                this.qrCode = await QRCode.toDataURL(qr, {
+                    width: 350,
+                    margin: 3,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    },
+                    errorCorrectionLevel: 'H', // Highest error correction
+                    type: 'image/png',
+                    quality: 0.92,
+                    maskPattern: 7
+                });
+                console.log('✅ Method 1 successful!');
+            } catch (error) {
+                console.log('⚠️ Method 1 failed:', error.message);
+                
+                // Method 2: Try with different error correction level
+                try {
+                    console.log('📱 Method 2: Medium error correction...');
+                    this.qrCode = await QRCode.toDataURL(qr, {
+                        width: 300,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#FFFFFF'
+                        },
+                        errorCorrectionLevel: 'M'
+                    });
+                    console.log('✅ Method 2 successful!');
+                } catch (error2) {
+                    console.log('⚠️ Method 2 failed:', error2.message);
+                    
+                    // Method 3: Try with minimal options
+                    try {
+                        console.log('📱 Method 3: Minimal options...');
+                        this.qrCode = await QRCode.toDataURL(qr);
+                        console.log('✅ Method 3 successful!');
+                    } catch (error3) {
+                        console.log('⚠️ Method 3 failed:', error3.message);
+                        
+                        // Method 4: Use simple base64 encoding as last resort
+                        try {
+                            console.log('📱 Method 4: Simple fallback...');
+                            this.qrCode = await this.generateSimpleQR(qr);
+                            console.log('✅ Method 4 successful!');
+                        } catch (error4) {
+                            console.log('❌ All QR generation methods failed');
+                            throw new Error(`All QR generation methods failed. Last error: ${error4.message}`);
+                        }
+                    }
+                }
+            }
             
             console.log('✅ QR Code DataURL generated successfully');
             console.log('📐 QR DataURL length:', this.qrCode.length);
-            console.log('🎯 QR Code starts with:', this.qrCode.substring(0, 50) + '...');
+            console.log('🎯 QR Code starts with:', this.qrCode.substring(0, 30) + '...');
             
-            // Validate generated QR code
-            if (!this.qrCode || !this.qrCode.startsWith('data:image/png;base64,')) {
+            // Enhanced validation
+            if (!this.qrCode || (!this.qrCode.startsWith('data:image/png;base64,') && !this.qrCode.startsWith('data:image/jpeg;base64,'))) {
                 throw new Error('Generated QR code is invalid or empty');
             }
             
-            // Save QR as PNG file for debugging
-            const fs = require('fs-extra');
-            const qrPath = path.join(this.dataDir, 'qr_debug.png');
-            await QRCode.toFile(qrPath, qr, {
-                width: 300,
-                margin: 2,
-                errorCorrectionLevel: 'M'
-            });
-            console.log('💾 QR Code saved to file for debugging:', qrPath);
-            
-            // Check file size as additional validation
-            const fileStats = await fs.stat(qrPath);
-            console.log('📊 QR file size:', fileStats.size, 'bytes');
-            
-            if (fileStats.size < 1000) {
-                console.warn('⚠️ QR file seems too small, might be corrupted');
+            // Verify QR contains actual data (not just empty image)
+            const base64Data = this.qrCode.split(',')[1];
+            if (!base64Data || base64Data.length < 1000) {
+                throw new Error('Generated QR code appears to be empty or corrupted');
             }
             
-            this.stats.qrGenerations++;
+            // Save multiple formats for better compatibility
+            await this.saveQRCodeFiles(qr);
+            
+            this.stats.qrGenerations = (this.stats.qrGenerations || 0) + 1;
             console.log('📊 Total QR generations:', this.stats.qrGenerations);
+            
+            // Add additional validation delay for mobile compatibility
+            console.log('⏳ Adding compatibility delay for mobile devices...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
         } catch (error) {
             console.error('❌ Error generating QR code:', error);
@@ -517,10 +590,144 @@ class WhatsAppManager {
             this.saveLog({
                 type: 'qr_generation_error',
                 status: 'error',
-                message: error.message
+                message: error.message,
+                timestamp: new Date().toISOString()
             });
             
-            throw error; // Re-throw to handle in calling function
+            throw error;
+        }
+    }
+
+    // Simple QR generation fallback with multiple libraries
+    async generateSimpleQR(qr) {
+        try {
+            console.log('🔄 Trying simple QR generation...');
+            
+            // Method 1: Basic QRCode without complex options
+            try {
+                const simpleQR = await QRCode.toDataURL(qr, {
+                    errorCorrectionLevel: 'L',
+                    width: 256
+                });
+                console.log('✅ Simple QRCode method successful');
+                return simpleQR;
+            } catch (error) {
+                console.log('⚠️ Simple QRCode failed:', error.message);
+                
+                // Method 2: Try with qr-image library
+                try {
+                    console.log('🔄 Trying qr-image library...');
+                    const QRImage = require('qr-image');
+                    
+                    const qrPng = QRImage.image(qr, { 
+                        type: 'png', 
+                        size: 8,
+                        margin: 2,
+                        ec_level: 'L'
+                    });
+                    
+                    const chunks = [];
+                    return new Promise((resolve, reject) => {
+                        qrPng.on('data', chunk => chunks.push(chunk));
+                        qrPng.on('end', () => {
+                            const buffer = Buffer.concat(chunks);
+                            const base64 = buffer.toString('base64');
+                            console.log('✅ qr-image method successful');
+                            resolve(`data:image/png;base64,${base64}`);
+                        });
+                        qrPng.on('error', reject);
+                    });
+                } catch (error2) {
+                    console.log('⚠️ qr-image failed:', error2.message);
+                    
+                                            // Method 3: Try with qrcode-generator
+                        try {
+                            console.log('🔄 Trying qrcode-generator library...');
+                            const qrCodeGen = require('qrcode-generator');
+                            
+                            const qr_gen = qrCodeGen(0, 'L');
+                            qr_gen.addData(qr);
+                            qr_gen.make();
+                            
+                            // Create simple ASCII art QR as base64
+                            const qrAscii = qr_gen.createDataURL(6, 3);
+                            console.log('✅ qrcode-generator method successful');
+                            return qrAscii;
+                    } catch (error3) {
+                        console.log('⚠️ qrcode-generator failed:', error3.message);
+                        throw new Error(`All simple QR methods failed. Last error: ${error3.message}`);
+                    }
+                }
+            }
+        } catch (error) {
+            throw new Error(`Simple QR generation failed: ${error.message}`);
+        }
+    }
+
+    // Save QR code in multiple formats for debugging and compatibility
+    async saveQRCodeFiles(qr) {
+        try {
+            const fs = require('fs-extra');
+            const timestamp = Date.now();
+            
+            // Save as PNG file
+            const qrPath = path.join(this.dataDir, `qr_${timestamp}.png`);
+            await QRCode.toFile(qrPath, qr, {
+                width: 300,
+                margin: 2,
+                errorCorrectionLevel: 'H'
+            });
+            
+            // Save raw QR data for debugging
+            const qrDataPath = path.join(this.dataDir, `qr_data_${timestamp}.txt`);
+            await fs.writeFile(qrDataPath, qr);
+            
+            console.log('💾 QR Code saved in multiple formats:');
+            console.log('   PNG:', qrPath);
+            console.log('   Data:', qrDataPath);
+            
+            // Check file sizes
+            const pngStats = await fs.stat(qrPath);
+            console.log('📊 PNG file size:', pngStats.size, 'bytes');
+            
+            if (pngStats.size < 1000) {
+                console.warn('⚠️ PNG file seems too small, might be corrupted');
+            }
+            
+            // Cleanup old QR files (keep only last 5)
+            await this.cleanupOldQRFiles();
+            
+        } catch (error) {
+            console.error('⚠️ Failed to save QR files:', error.message);
+            // Don't throw error here, as it's just for debugging
+        }
+    }
+
+    // Cleanup old QR files to prevent disk space issues
+    async cleanupOldQRFiles() {
+        try {
+            const fs = require('fs-extra');
+            const files = await fs.readdir(this.dataDir);
+            
+            const qrFiles = files
+                .filter(file => file.startsWith('qr_') && (file.endsWith('.png') || file.endsWith('.txt')))
+                .map(file => ({
+                    name: file,
+                    path: path.join(this.dataDir, file),
+                    timestamp: parseInt(file.match(/qr_(\d+)/)?.[1] || '0')
+                }))
+                .sort((a, b) => b.timestamp - a.timestamp);
+            
+            // Keep only the 5 most recent files
+            const filesToDelete = qrFiles.slice(5);
+            
+            for (const file of filesToDelete) {
+                await fs.remove(file.path);
+                console.log('🗑️ Cleaned up old QR file:', file.name);
+            }
+            
+        } catch (error) {
+            console.error('⚠️ Failed to cleanup old QR files:', error.message);
         }
     }
 

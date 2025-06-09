@@ -51,12 +51,47 @@ router.use(generalLimit);
 // Connection Management
 router.post('/initialize', async (req, res) => {
     try {
+        const { forceRestart, enhancedQR, clearSessions, retryAttempt } = req.body || {};
+        
+        console.log('🔄 Initialize request received with options:', {
+            forceRestart,
+            enhancedQR,
+            clearSessions,
+            retryAttempt
+        });
+        
+        // If enhanced QR is requested, first clear sessions
+        if (enhancedQR || clearSessions) {
+            console.log('🗑️ Clearing sessions before enhanced initialization...');
+            try {
+                await WhatsAppManager.clearSessions();
+            } catch (error) {
+                console.log('⚠️ Session clear failed:', error.message);
+            }
+        }
+        
+        // Add delay for stability
+        if (forceRestart || retryAttempt) {
+            console.log('⏳ Adding stability delay...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        
         const result = await WhatsAppManager.initialize();
+        
+        if (result.success && (enhancedQR || retryAttempt)) {
+            // Add metadata for enhanced requests
+            result.enhanced = true;
+            result.method = 'enhanced_initialization';
+            result.timestamp = new Date().toISOString();
+        }
+        
         res.json(result);
     } catch (error) {
+        console.error('❌ Initialize error:', error);
         res.status(500).json({
             success: false,
-            message: error.message
+            message: error.message,
+            enhanced: req.body?.enhancedQR || false
         });
     }
 });
@@ -84,6 +119,36 @@ router.get('/status', (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message
+        });
+    }
+});
+
+// Enhanced QR Code endpoint
+router.get('/qr-code', (req, res) => {
+    try {
+        const status = WhatsAppManager.getStatus();
+        
+        if (status.qrCode) {
+            res.json({
+                success: true,
+                qrCode: status.qrCode,
+                status: status.status,
+                timestamp: new Date().toISOString(),
+                enhanced: true
+            });
+        } else {
+            res.json({
+                success: false,
+                message: 'QR Code not available',
+                status: status.status,
+                enhanced: true
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+            enhanced: true
         });
     }
 });

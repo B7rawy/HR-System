@@ -615,6 +615,107 @@ const WhatsAppDashboard = () => {
         }
     };
 
+    // Enhanced QR retry with better error handling
+    const retryQRGeneration = async () => {
+        setLoading(true);
+        setError('');
+        setSuccess('');
+        
+        try {
+            console.log('🔄 Starting enhanced QR retry...');
+            
+            // Step 1: Clear all data
+            clearWhatsAppData();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Step 2: Force disconnect
+            try {
+                await WhatsAppService.disconnect();
+            } catch (error) {
+                console.log('Disconnect not needed:', error.message);
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Step 3: Clear backend sessions
+            const clearResult = await fetch('http://localhost:5001/api/whatsapp/clear-sessions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (!clearResult.ok) {
+                console.warn('Backend clear failed');
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Step 4: Enhanced initialization with new methods
+            const initResponse = await fetch('http://localhost:5001/api/whatsapp/initialize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    forceRestart: true,
+                    enhancedQR: true,
+                    clearSessions: true,
+                    retryAttempt: true
+                })
+            });
+            
+            const initResult = await initResponse.json();
+            
+            if (initResult.success) {
+                setSuccess('🔄 تم بدء عملية إنتاج QR محسنة. انتظر قليلاً...');
+                
+                // Step 5: Start monitoring for new QR
+                let attempts = 0;
+                const maxAttempts = 25;
+                
+                const checkForQR = async () => {
+                    attempts++;
+                    console.log(`🔍 Checking for QR (attempt ${attempts}/${maxAttempts})`);
+                    
+                    try {
+                        const statusResult = await checkStatus();
+                        
+                        if (statusResult && statusResult.qrCode) {
+                            setSuccess('✅ تم إنتاج QR Code بطريقة محسنة! امسح الكود بسرعة.');
+                            clearInterval(window.qrCheckInterval);
+                            return;
+                        }
+                        
+                        if (attempts >= maxAttempts) {
+                            clearInterval(window.qrCheckInterval);
+                            setError('فشل في إنتاج QR Code حتى بعد التحسينات. جرب إعادة تشغيل النظام.');
+                        }
+                    } catch (error) {
+                        console.log(`QR check attempt ${attempts} failed:`, error.message);
+                    }
+                };
+                
+                // Start checking for QR
+                checkForQR();
+                window.qrCheckInterval = setInterval(checkForQR, 2500);
+                
+                // Cleanup interval after 60 seconds
+                setTimeout(() => {
+                    if (window.qrCheckInterval) {
+                        clearInterval(window.qrCheckInterval);
+                        window.qrCheckInterval = null;
+                    }
+                }, 60000);
+                
+            } else {
+                throw new Error(initResult.message || 'فشل في بدء العملية المحسنة');
+            }
+            
+        } catch (error) {
+            console.error('Enhanced QR retry failed:', error);
+            setError(`فشل في إعادة المحاولة المحسنة: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Notification helpers
     const showNotification = (message, type = 'info') => {
         if (type === 'success') {
@@ -731,6 +832,16 @@ const WhatsAppDashboard = () => {
                                         title="مسح جميع البيانات والجلسات المحفوظة"
                                     >
                                         {loading ? '🔄 جاري المسح...' : '🗑️ مسح البيانات والبدء من جديد'}
+                                    </button>
+                                    
+                                    <button 
+                                        className="btn btn-success"
+                                        onClick={retryQRGeneration}
+                                        disabled={loading}
+                                        style={{ marginTop: '10px' }}
+                                        title="إعادة محاولة إنتاج QR Code بطرق محسنة"
+                                    >
+                                        {loading ? '🔄 جاري المحاولة...' : '🚀 إعادة محاولة QR محسنة'}
                                     </button>
                                 </div>
                             </div>
