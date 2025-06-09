@@ -188,36 +188,37 @@ const WhatsAppConnectionPage = () => {
         }
     };
 
+    // دالة polling للـ QR Code (منفصلة لتكون متاحة في كل مكان)
+    const pollQRCode = async () => {
+        try {
+            const response = await WhatsAppService.apiCall('/qr-code');
+            
+            if (response.success && response.qrCode) {
+                console.log('✅ تم استلام QR Code من polling');
+                handleQRCodeReceived(response.qrCode);
+                return true; // وقف polling
+            } else {
+                console.log('⏳ QR Code ليس جاهزاً بعد...');
+                // لا تغير الحالة إذا كان QR موجود بالفعل
+                if (!connectionState.qrCode) {
+                    setConnectionState(prev => ({
+                        ...prev,
+                        status: 'waiting_qr',
+                        errorMessage: 'انتظار QR Code...'
+                    }));
+                }
+                return false; // استمرار polling
+            }
+        } catch (error) {
+            console.log('🔄 خطأ في polling QR Code:', error.message);
+            // لا تمسح QR الموجود عند حدوث خطأ في API
+            return false; // استمرار polling
+        }
+    };
+
     // بدء polling للـ QR Code
     const startQRPolling = async () => {
         console.log('🔄 بدء polling للـ QR Code...');
-        
-        const pollQRCode = async () => {
-            try {
-                const response = await WhatsAppService.apiCall('/qr-code');
-                
-                if (response.success && response.qrCode) {
-                    console.log('✅ تم استلام QR Code من polling');
-                    handleQRCodeReceived(response.qrCode);
-                    return true; // وقف polling
-                } else {
-                    console.log('⏳ QR Code ليس جاهزاً بعد...');
-                    // لا تغير الحالة إذا كان QR موجود بالفعل
-                    if (!connectionState.qrCode) {
-                        setConnectionState(prev => ({
-                            ...prev,
-                            status: 'waiting_qr',
-                            errorMessage: 'انتظار QR Code...'
-                        }));
-                    }
-                    return false; // استمرار polling
-                }
-            } catch (error) {
-                console.log('🔄 خطأ في polling QR Code:', error.message);
-                // لا تمسح QR الموجود عند حدوث خطأ في API
-                return false; // استمرار polling
-            }
-        };
 
         // محاولة فورية أولى
         const immediate = await pollQRCode();
